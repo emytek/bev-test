@@ -8,7 +8,7 @@ import {
   } from "../../ui/table";
 import Input from "../../form/input/InputField";
 import Button from "../../ui/button/Button";
-import { Toaster, toast } from 'sonner';
+import { Toaster } from 'sonner';
 import Badge from '../../ui/badge/Badge';
 
 interface StockDetail {
@@ -44,8 +44,6 @@ interface QuantityEntry {
   SAPGoodsMovementID: string | null;
   SAPChangeOfStockID: string | null;
 }
-
-interface Props {}
 
 
 const ProductionOrderMetaDataLookup = () => {

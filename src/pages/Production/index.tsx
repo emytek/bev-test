@@ -1,8 +1,4 @@
-import MonthlySalesChart from "../../components/operations/MonthlySalesChart";
 import StatisticsChart from "../../components/operations/StatisticsChart";
-import MonthlyTarget from "../../components/operations/MonthlyTarget";
-import RecentOrders from "../../components/operations/RecentProduction";
-import DemographicCard from "../../components/operations/DemographicCard";
 import PageMeta from "../../components/common/PageMeta";
 import { ProductionOverview } from "../../components/operations/ProductionMetrics/TotalProduction";
 import MonthlyProductionChart from "../../components/operations/ProductionMetrics/MonthlyProduction";

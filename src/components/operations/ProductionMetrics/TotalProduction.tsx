@@ -1,15 +1,10 @@
-import React from 'react'
 import { ProductionMetric, StatusBadge } from '.'
 import { motion } from 'framer-motion';
 import { 
     FiCheckCircle, 
     FiXCircle, 
     FiClock, 
-    FiRefreshCcw, 
-    FiAlertTriangle, 
-    FiInfo 
   } from 'react-icons/fi';
-import Badge from '../../ui/badge/Badge';
 
 export const ProductionOverview = () => {
     const data = {

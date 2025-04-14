@@ -5,22 +5,13 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import Badge from "../ui/badge/Badge";
 import {
   FaCheckCircle,
   FaTimesCircle,
   FaPauseCircle,
   FaClock,
   FaCheck,
-} from "react-icons/fa"; // Font Awesome
-import { AiOutlineStop } from "react-icons/ai"; // Ant Design Icons
-import {
-  BiCheckCircle,
-  BiXCircle,
-  BiPause,
-  BiTime,
-  BiCheck,
-} from "react-icons/bi"; // BoxIcons
+} from "react-icons/fa"; 
 
 interface ProductionItem {
   id: number;
