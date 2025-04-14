@@ -27,7 +27,7 @@ export default defineConfig({
     port: 5175, // Ensure this matches your dev server port
     proxy: {
       '/api': {
-        target: 'http://35.177.236.20:3006',
+        target: 'https://addon.wyzeng.com:3006',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '/api'),
