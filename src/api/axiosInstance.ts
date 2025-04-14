@@ -1,13 +1,13 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://35.177.236.20:3006";
+const API_BASE_URL = "https://addon.wyzeng.com:3006/";
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // Ensures cookies are included if needed
+  withCredentials: true, 
 });
 
 export default axiosInstance;

@@ -31,6 +31,9 @@ import ForgotPassword from "./components/auth/ForgetPassword";
 import ResetPassword from "./components/auth/ResetPassword";
 // import Barcode from 'react-barcode'
 import RegisterUser from "./components/auth/Onboarding/CreateUser";
+import Production from "./pages/Production";
+import ProductionOrderLookup from "./components/operations/ProductionMetrics/ProductionOrder";
+import ProductionOrderMetaDataLookup from "./components/operations/ProductionMetrics/ProductionOrderMetaData";
 
 
 export default function App() {
@@ -54,10 +57,13 @@ export default function App() {
           {/* Dashboard Layout */}
           <Route element={<AppLayout />}>
             <Route index path="/" element={<Home />} />
+            <Route index path="/production" element={<Production />} />
+            <Route index path="/production-details" element={<ProductionOrderLookup />} />
+            <Route index path="/production-info" element={<ProductionOrderMetaDataLookup />} />
 
             {/* Others Page */}
-            <Route path="/profile" element={<UserProfiles />} />
-            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/warehouse" element={<UserProfiles />} />
+            <Route path="/stores" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 
             {/* Forms */}

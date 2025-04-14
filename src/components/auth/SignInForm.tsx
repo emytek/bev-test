@@ -155,7 +155,7 @@ export default function SignInForm() {
   
 
   return (
-    <div className="flex flex-col flex-1">
+    <div className="flex flex-col flex-1 justify-center items-center h-screen">
       <div className="w-full max-w-md pt-10 mx-auto">
         {/* Error Message Alert */}
         {error && (

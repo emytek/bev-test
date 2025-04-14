@@ -34,22 +34,25 @@ const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
     name: "Dashboard",
-    subItems: [{ name: "Ecommerce", path: "/", pro: false }],
+    subItems: [{ name: "Overview", path: "/", pro: false }],
   },
   {
     icon: <LuFactory />,
     name: "Production Management",
-    subItems: [{ name: "Ecommerce", path: "/", pro: false }],
+    subItems: [{ name: "Manufacturing Insights", path: "/production", pro: false },
+      { name: "Retrieve Production Data", path: "/production-details", pro: false },
+      { name: "Retrieve PO Metadata", path: "/production-info", pro: false },
+    ],
   },
   {
     icon: <LuPackage />,
     name: "Stores Operation",
-    path: "/calendar",
+    path: "/stores",
   },
   {
     icon: <LuTruck />,
     name: "WareHouse Dispatch",
-    path: "/profile",
+    path: "/warehouse",
   },
   {
     name: "Inventory Overview",
