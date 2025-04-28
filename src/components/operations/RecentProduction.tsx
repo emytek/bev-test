@@ -11,7 +11,7 @@ import {
   FaPauseCircle,
   FaClock,
   FaCheck,
-} from "react-icons/fa"; 
+} from "react-icons/fa"; // Font Awesome
 
 interface ProductionItem {
   id: number;

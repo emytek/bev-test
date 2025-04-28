@@ -190,7 +190,7 @@ const RegisterUser = () => {
       reset(); // Clear the form after successful submission
 
       setTimeout(() => {
-        navigate("/signin");
+        navigate("/");
       }, 3000);
     } catch (err: any) {
       const backendMessage =

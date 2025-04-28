@@ -1,12 +1,14 @@
-import { Link } from "react-router";
+import React, { CSSProperties } from 'react';
+import { Link } from 'react-router-dom'; // Assuming you're using React Router
 
-interface AlertProps {
-  variant: "success" | "error" | "warning" | "info"; // Alert type
-  title: string; // Title of the alert
-  message: string; // Message of the alert
-  showLink?: boolean; // Whether to show the "Learn More" link
-  linkHref?: string; // Link URL
-  linkText?: string; // Link text
+export interface AlertProps {
+  variant: "success" | "error" | "warning" | "info";
+  title: string;
+  message: string;
+  showLink?: boolean;
+  linkHref?: string;
+  linkText?: string;
+  style?: CSSProperties; 
 }
 
 const Alert: React.FC<AlertProps> = ({
@@ -16,8 +18,8 @@ const Alert: React.FC<AlertProps> = ({
   showLink = false,
   linkHref = "#",
   linkText = "Learn more",
+  style, 
 }) => {
-  // Tailwind classes for each variant
   const variantClasses = {
     success: {
       container:
@@ -41,7 +43,6 @@ const Alert: React.FC<AlertProps> = ({
     },
   };
 
-  // Icon for each variant
   const icons = {
     success: (
       <svg
@@ -114,19 +115,17 @@ const Alert: React.FC<AlertProps> = ({
   return (
     <div
       className={`rounded-xl border p-4 ${variantClasses[variant].container}`}
+      style={style} // Apply the style prop here
     >
       <div className="flex items-start gap-3">
         <div className={`-mt-0.5 ${variantClasses[variant].icon}`}>
           {icons[variant]}
         </div>
-
         <div>
           <h4 className="mb-1 text-sm font-semibold text-gray-800 dark:text-white/90">
             {title}
           </h4>
-
           <p className="text-sm text-gray-500 dark:text-gray-400">{message}</p>
-
           {showLink && (
             <Link
               to={linkHref}
@@ -142,3 +141,4 @@ const Alert: React.FC<AlertProps> = ({
 };
 
 export default Alert;
+

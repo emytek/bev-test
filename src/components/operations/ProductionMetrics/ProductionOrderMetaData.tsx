@@ -45,7 +45,6 @@ interface QuantityEntry {
   SAPChangeOfStockID: string | null;
 }
 
-
 const ProductionOrderMetaDataLookup = () => {
     const [productionOrderNumber, setProductionOrderNumber] = useState("");
   const [stockDetails, setStockDetails] = useState<StockDetail[] | null>(null);

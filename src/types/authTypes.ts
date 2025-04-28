@@ -1,11 +1,17 @@
 export interface LoginRequest {
-    userNameOrEmailAddress: string;
+    userNameEmail: string;
     password: string;
   }
   
+  export interface LoginResponseRaw {
+    status: boolean;
+    message: string;
+    user: any; 
+    token: string;
+  }
+  
   export interface LoginResponse {
-    accessToken: string;
-    refreshToken?: string;
-    expiresIn: number;
+    token: string;
+    user: any; 
   }
   

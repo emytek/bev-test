@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { loginUser } from "../api/authApi";
-import { LoginRequest, LoginResponse } from "../types/authTypes";
-import { saveToStorage } from "../utils/storage";
+import { LoginRequest } from "../types/authTypes";
+import { useAuth as useAuthProvider } from "../context/AuthContext"; 
 
 export const useAuth = () => {
+  const { login: loginContext, logout, isAuthenticated, user, token } = useAuthProvider();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -11,12 +12,8 @@ export const useAuth = () => {
     try {
       setLoading(true);
       setError(null);
-      const data: LoginResponse = await loginUser(credentials);
-
-      // Store tokens securely
-      saveToStorage("accessToken", data.accessToken);
-      if (data.refreshToken) saveToStorage("refreshToken", data.refreshToken);
-
+      const data = await loginUser(credentials);
+      loginContext(data); 
       return data;
     } catch (err: any) {
       const backendMessage = err.response?.data?.message || "An unexpected error occurred.";
@@ -27,5 +24,8 @@ export const useAuth = () => {
     }
   };
 
-  return { login, loading, error };
+  return { login, logout, isAuthenticated, user, token, loading, error };
 };
+
+
+

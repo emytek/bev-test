@@ -1,5 +1,14 @@
-import { useState } from "react";
 
+import React, { useState, useEffect } from "react";
+import {
+  FaSearch,
+  FaPlus,
+  FaPrint,
+  FaSave,
+  FaEdit,
+  FaTrash,
+  FaTimes,
+} from "react-icons/fa";
 import {
   Table,
   TableBody,
@@ -7,264 +16,565 @@ import {
   TableHeader,
   TableRow,
 } from "../../ui/table";
-import Badge from "../../ui/badge/Badge";
-import { toast, Toaster } from "sonner"; 
 import Input from "../../form/input/InputField";
 import Button from "../../ui/button/Button";
+import { toast } from "sonner";
+import Alert from "../../ui/alert/Alert";
 
-interface ProductionOrderDetails {
-  productionOrderNumber: string;
-  productionRequest: string;
-  productId: string;
-  taskId: string;
-  quantity: number;
-  date: string;
-  status: "Pending" | "Processing" | "Completed" | "Failed";
+interface ProductionHeader {
+  ProductionHeaderID: string;
+  SAPProductionOrderID: string;
+  SAPProductionOrderObjectID: string;
+  SAPProductionProposalID: string;
+  SAPSupplyTaskID: string;
+  SAPMakeTaskID: string;
 }
 
-interface Props {}
+interface ProductionDetail {
+  SAPProductID: string;
+  SAPProductDescription: string;
+  SAPPlannedQuantity: number;
+  CompletedQuantity: number;
+  StatusCode: string;
+  CreatedBy: string;
+  UpdatedBy: string;
+  Created: string;
+  Updated: string;
+}
 
-const ProductionOrderLookup: React.FC<Props> = () => {
-  const [productionOrderNumber, setProductionOrderNumber] = useState("");
-  const [orderDetails, setOrderDetails] = useState<ProductionOrderDetails | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [processing, setProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+interface ProductionOrder {
+  quantity: string;
+  restricted: string;
+  shift: string;
+  identifiedStockID: string;
+}
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setProductionOrderNumber(e.target.value);
+const mockProductionOrdersData: Record<
+  string,
+  { header: ProductionHeader; details: ProductionDetail[] }
+> = {
+  "PO-2025-001": {
+    header: {
+      ProductionHeaderID: "PH001",
+      SAPProductionOrderID: "SAP001",
+      SAPProductionOrderObjectID: "OBJ001",
+      SAPProductionProposalID: "PROP001",
+      SAPSupplyTaskID: "SUP001",
+      SAPMakeTaskID: "MAKE001",
+    },
+    details: [
+      {
+        SAPProductID: "PROD001",
+        SAPProductDescription: "Product A",
+        SAPPlannedQuantity: 100,
+        CompletedQuantity: 95,
+        StatusCode: "Active",
+        CreatedBy: "User1",
+        UpdatedBy: "User2",
+        Created: "2025-04-20",
+        Updated: "2025-04-24",
+      },
+      {
+        SAPProductID: "PROD002",
+        SAPProductDescription: "Product B",
+        SAPPlannedQuantity: 50,
+        CompletedQuantity: 50,
+        StatusCode: "Completed",
+        CreatedBy: "User1",
+        UpdatedBy: "User1",
+        Created: "2025-04-21",
+        Updated: "2025-04-21",
+      },
+    ],
+  },
+  "PO-2025-002": {
+    header: {
+      ProductionHeaderID: "PH002",
+      SAPProductionOrderID: "SAP002",
+      SAPProductionOrderObjectID: "OBJ002",
+      SAPProductionProposalID: "PROP002",
+      SAPSupplyTaskID: "SUP002",
+      SAPMakeTaskID: "MAKE002",
+    },
+    details: [
+      {
+        SAPProductID: "PROD003",
+        SAPProductDescription: "Product C",
+        SAPPlannedQuantity: 200,
+        CompletedQuantity: 150,
+        StatusCode: "In Progress",
+        CreatedBy: "User3",
+        UpdatedBy: "User4",
+        Created: "2025-04-22",
+        Updated: "2025-04-25",
+      },
+    ],
+  },
+  "PO-2025-003": {
+    header: {
+      ProductionHeaderID: "PH003",
+      SAPProductionOrderID: "SAP003",
+      SAPProductionOrderObjectID: "OBJ003",
+      SAPProductionProposalID: "PROP003",
+      SAPSupplyTaskID: "SUP003",
+      SAPMakeTaskID: "MAKE003",
+    },
+    details: [
+      {
+        SAPProductID: "PROD004",
+        SAPProductDescription: "Product D",
+        SAPPlannedQuantity: 75,
+        CompletedQuantity: 25,
+        StatusCode: "Pending",
+        CreatedBy: "User2",
+        UpdatedBy: "User2",
+        Created: "2025-04-23",
+        Updated: "2025-04-24",
+      },
+    ],
+  },
+};
+
+const mockProductionOrders = Object.keys(mockProductionOrdersData);
+
+const formatDate = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+  return `${day}/${month}/${year} - ${hours}:${minutes}:${seconds}`;
+};
+
+const ProductionOrderPage: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isFindSuccessful, setIsFindSuccessful] = useState(false);
+  const [findError, setFindError] = useState<string | null>(null);
+  const [productionOrderHeader, setProductionOrderHeader] =
+    useState<ProductionHeader | null>(null);
+  const [productionOrderDetails, setProductionOrderDetails] = useState<
+    ProductionDetail[] | null
+  >(null);
+  const [isNewButtonEnabled, setIsNewButtonEnabled] = useState(false);
+  const [showNewInputFields, setShowNewInputFields] = useState(false);
+  const [quantity, setQuantity] = useState("");
+  const [restricted, setRestricted] = useState("");
+  const [shift, setShift] = useState("");
+  const [tableData, setTableData] = useState<ProductionOrder[]>([]);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
+  const [successAlertVisible, setSuccessAlertVisible] = useState(false);
+
+  // Mock function to simulate fetching production order details
+  interface FetchProductionOrderResult {
+    header: ProductionHeader;
+    details: ProductionDetail[];
+  }
+
+  const fetchProductionOrderDetails = (
+    orderNumber: string
+  ): Promise<FetchProductionOrderResult> => {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (mockProductionOrders.includes(orderNumber)) {
+          resolve(mockProductionOrdersData[orderNumber]);
+        } else {
+          reject("Invalid Production Order Number");
+        }
+      }, 1000);
+    });
   };
 
-  const handleSendClick = async () => {
-    setLoading(true);
-    setOrderDetails(null);
-    setError(null);
+  useEffect(() => {
+    if (isFindSuccessful) {
+      const timer = setTimeout(() => {
+        setSuccessAlertVisible(false);
+      }, 3000); // Adjust the duration as needed
+      return () => clearTimeout(timer);
+    }
+  }, [isFindSuccessful]);
 
+  const handleFindClick = () => {
+    setIsModalOpen(true);
+    setIsFindSuccessful(false);
+    setFindError(null);
+    setSearchQuery("");
+    setProductionOrderHeader(null);
+    setProductionOrderDetails(null);
+    setIsNewButtonEnabled(false);
+    setShowNewInputFields(false);
+  };
+
+  const handleSearchClick = async () => {
+    setFindError(null);
     try {
-      const mockApiResponse: ProductionOrderDetails | null = await new Promise((resolve) => {
-        setTimeout(() => {
-          if (productionOrderNumber === "PO12345") {
-            resolve({
-              productionOrderNumber: "PO12345",
-              productionRequest: "Manufacture Widgets",
-              productId: "WIDGET-001",
-              taskId: "1",
-              quantity: 1000,
-              date: "2025-04-15",
-              status: "Processing",
-            });
-          } else if (productionOrderNumber === "PO67890") {
-            resolve({
-              productionOrderNumber: "PO67890",
-              productionRequest: "Assemble Gears",
-              productId: "GEAR-002",
-              taskId: "2",
-              quantity: 500,
-              date: "2025-04-20",
-              status: "Completed",
-            });
-          } else if (productionOrderNumber === "PO98765") {
-            resolve({
-              productionOrderNumber: "PO98765",
-              productionRequest: "Test Components",
-              productId: "TEST-003",
-              taskId: "3",
-              quantity: 200,
-              date: "2025-04-25",
-              status: "Pending",
-            });
-        } else if (productionOrderNumber === "PO12468") {
-            resolve({
-              productionOrderNumber: "PO12468",
-              productionRequest: "Test SAP",
-              productId: "TEST-004",
-              taskId: "4",
-              quantity: 250,
-              date: "2025-04-25",
-              status: "Pending",
-            });
-          } else {
-            resolve(null);
-          }
-        }, 1000);
-      });
-
-      if (mockApiResponse) {
-        setOrderDetails(mockApiResponse);
-      } else {
-        setError("Production order number not found.");
-      }
-    } catch (err: any) {
-      setError("Failed to fetch production order details.");
-      console.error("Error fetching production order details:", err);
-    } finally {
-      setLoading(false);
+      const data = await fetchProductionOrderDetails(searchQuery);
+      setProductionOrderHeader(data.header);
+      setProductionOrderDetails(data.details);
+      setIsFindSuccessful(true);
+      setSuccessAlertVisible(true);
+      setIsModalOpen(false);
+      setIsNewButtonEnabled(true);
+      toast.success(`Production Order "${searchQuery}" found!`);
+    } catch (error: any) {
+      setFindError(error);
+      toast.error(error);
     }
   };
 
-  const handleProcessProduction = async () => {
-    if (!orderDetails) {
-      toast.error("No production order details to process.");
+  const handleNewClick = () => {
+    setShowNewInputFields(true);
+    // Reset input fields for new entry
+    setQuantity("");
+    setRestricted("");
+    setShift("");
+    setEditingIndex(null);
+  };
+
+  const handleAddClick = () => {
+    if (!quantity || !restricted || !shift) {
+      toast.error("Please fill in all the fields.");
       return;
     }
 
-    setProcessing(true);
-    setError(null);
+    const newEntry = {
+      quantity,
+      restricted,
+      shift,
+      identifiedStockID: formatDate(Date.now()),
+    };
 
-    try {
-      await new Promise((resolve) => {
-        setTimeout(() => {
-          setOrderDetails({ ...orderDetails, status: "Completed" });
-          resolve(true);
-        }, 1500);
-      });
-
-      toast.success(`Production order ${orderDetails.productionOrderNumber} processed successfully!`);
-    } catch (err: any) {
-      toast.error(`Failed to process production order ${orderDetails.productionOrderNumber}.`);
-      console.error("Error processing production order:", err);
-      setError(`Failed to process production order ${orderDetails.productionOrderNumber}.`);
-    } finally {
-      setProcessing(false);
+    if (editingIndex !== null) {
+      const updatedTableData = [...tableData];
+      updatedTableData[editingIndex] = newEntry;
+      setTableData(updatedTableData);
+      setEditingIndex(null);
+      toast.success("Entry updated successfully!");
+    } else {
+      setTableData([...tableData, newEntry]);
+      toast.success("Entry added successfully!");
     }
+
+    // Clear input fields after adding/editing
+    setQuantity("");
+    setRestricted("");
+    setShift("");
   };
 
-  return (
-    <div className="p-6">
-      {/* Include the Toaster component */}
-      <Toaster richColors />
+  const handleEditClick = (index: number, data: ProductionOrder) => {
+    setShowNewInputFields(true);
+    setQuantity(data.quantity);
+    setRestricted(data.restricted);
+    setShift(data.shift);
+    setEditingIndex(index);
+  };
 
-      <div className="flex items-center gap-4 mb-6">
-        <Input
-          type="text"
-          placeholder="Production Order Number"
-          value={productionOrderNumber}
-          onChange={handleInputChange}
-          disabled={loading || processing}
-        />
-        <Button onClick={handleSendClick} disabled={loading || processing}>
-          {loading ? "Fetching..." : "Send"}
+  const handleDeleteClick = (index: number) => {
+    const updatedTableData = tableData.filter((_, i) => i !== index);
+    setTableData(updatedTableData);
+    toast.success("Entry deleted successfully!");
+  };
+
+  const handleBulkDelete = () => {
+    const itemsToDelete = Array.from(selectedItems).sort((a, b) => b - a); // Sort to avoid index issues
+    let newTableData = [...tableData];
+    itemsToDelete.forEach((index) => {
+      newTableData.splice(index, 1);
+    });
+    setTableData(newTableData);
+    setSelectedItems(new Set());
+    toast.success(`${itemsToDelete.length} item(s) deleted successfully!`);
+  };
+
+  const handleCheckboxChange = (index: number) => {
+    const newSelectedItems = new Set(selectedItems);
+    if (newSelectedItems.has(index)) {
+      newSelectedItems.delete(index);
+    } else {
+      newSelectedItems.add(index);
+    }
+    setSelectedItems(newSelectedItems);
+  };
+
+  const renderTable = (header: string[], data: any[]) => (
+    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] mb-4">
+      <div className="max-w-full overflow-x-auto">
+        <Table aria-label={header.join(", ")}>
+          <TableHeader>
+            <TableRow>
+              {header.map((col) => (
+                <TableCell
+                  key={col}
+                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                >
+                  {col}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.map((item, index) => (
+              <TableRow key={index}>
+                {Object.values(item).map((value) => (
+                  <TableCell
+                    key={`<span class="math-inline">\{index\}\-</span>{i}`}
+                    className="px-5 py-3 text-gray-500 text-theme-sm dark:text-gray-400"
+                  >
+                    {String(value)}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex items-center gap-4">
+        <Button onClick={handleFindClick} startIcon={<FaSearch />}>
+          Find
+        </Button>
+        <Button
+          onClick={handleNewClick}
+          startIcon={<FaPlus />}
+          disabled={!isNewButtonEnabled}
+        >
+          New
         </Button>
       </div>
 
-      {error && (
-        <div className="mb-4">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <strong className="font-bold">Error!</strong>
-            <span className="block sm:inline">{error}</span>
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md relative"
+            onClick={(e) => e.stopPropagation()} // Prevent click from closing modal
+          >
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+            >
+              <FaTimes className="h-5 w-5" />
+            </button>
+            <h5 className="text-md font-semibold mb-4 text-gray-800 dark:text-white">
+              Enter Production Order Number
+            </h5>
+            {findError && (
+              <Alert
+                variant="error"
+                title="Error"
+                message={findError}
+                style={{ marginBottom: "1rem" }}
+              />
+            )}
+            <div className="flex items-center gap-2 mb-4">
+              <Input
+                type="text"
+                placeholder="Production Order Number"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-grow"
+              />
+              <Button onClick={handleSearchClick} startIcon={<FaSearch />}>
+                Search
+              </Button>
+            </div>
+            {/* Removed the Cancel button from here */}
           </div>
         </div>
       )}
 
-      {orderDetails && (
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-          <div className="max-w-full overflow-x-auto">
-            <Table>
-              <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-                <TableRow>
-                  <TableCell
-                    isHeader
-                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                  >
-                    Production Order Number
-                  </TableCell>
-                  <TableCell
-                    isHeader
-                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                  >
-                    Production Request
-                  </TableCell>
-                  <TableCell
-                    isHeader
-                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                  >
-                    Product ID
-                  </TableCell>
-                  <TableCell
-                    isHeader
-                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                  >
-                    Task ID
-                  </TableCell>
-                  <TableCell
-                    isHeader
-                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                  >
-                    Quantity
-                  </TableCell>
-                  <TableCell
-                    isHeader
-                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                  >
-                    Date
-                  </TableCell>
-                  <TableCell
-                    isHeader
-                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                  >
-                    Status
-                  </TableCell>
-                  <TableCell
-                    isHeader
-                    className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400"
-                  >
-                    Action
-                  </TableCell>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                <TableRow key={orderDetails.productionOrderNumber}>
-                  <TableCell className="px-5 py-4 sm:px-6 text-start">
-                    <span className="font-medium text-gray-800 dark:text-white/90">
-                      {orderDetails.productionOrderNumber}
-                    </span>
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {orderDetails.productionRequest}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {orderDetails.productId}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {orderDetails.quantity}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {orderDetails.date}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    <Badge
-                      size="sm"
-                      color={
-                        orderDetails.status === "Completed"
-                          ? "success"
-                          : orderDetails.status === "Processing"
-                          ? "warning"
-                          : orderDetails.status === "Failed"
-                          ? "error"
-                          : "info"
-                      }
+      {successAlertVisible &&
+        isFindSuccessful &&
+        productionOrderHeader &&
+        productionOrderDetails && (
+          <Alert
+            variant="success"
+            title="Success"
+            message={`Production Order "${searchQuery}" found.`}
+          />
+        )}
+
+      {productionOrderHeader &&
+        renderTable(
+          [
+            "ProductionHeaderID",
+            "SAPProductionOrderID",
+            "SAPProductionOrderObjectID",
+            "SAPProductionProposalID",
+            "SAPSupplyTaskID",
+            "SAPMakeTaskID",
+          ],
+          [productionOrderHeader]
+        )}
+
+      {productionOrderDetails &&
+        productionOrderDetails.length > 0 &&
+        renderTable(
+          [
+            "SAPProductID",
+            "SAPProductDescription",
+            "SAPPlannedQuantity",
+            "CompletedQuantity",
+            "StatusCode",
+            "CreatedBy",
+            "UpdatedBy",
+            "Created",
+            "Updated",
+          ],
+          productionOrderDetails
+        )}
+
+      {isNewButtonEnabled && showNewInputFields && (
+        <div className="flex items-center gap-4">
+          <Input
+            type="number"
+            placeholder="Quantity"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            className="w-1/4"
+          />
+          <Input
+            type="text"
+            placeholder="Restricted"
+            value={restricted}
+            onChange={(e) => setRestricted(e.target.value)}
+            className="w-1/4"
+          />
+          <Input
+            type="text"
+            placeholder="Shift"
+            value={shift}
+            onChange={(e) => setShift(e.target.value)}
+            className="w-1/4"
+          />
+          <Button onClick={handleAddClick} startIcon={<FaPlus />}>
+            {editingIndex !== null ? "Update" : "Add"}
+          </Button>
+        </div>
+      )}
+
+      {tableData.length > 0 && (
+        <div className="space-y-2">
+          {selectedItems.size > 0 && (
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              startIcon={<FaTrash />}
+            >
+              Delete Selected ({selectedItems.size})
+            </Button>
+          )}
+          {tableData && tableData.length > 0 && (
+            <div className="overflow-x-auto">
+              <Table className="min-w-full border-collapse border border-gray-200 dark:border-gray-700 shadow-md rounded-xl overflow-hidden">
+                <TableHeader className="bg-gray-50 dark:bg-gray-800">
+                  <TableRow>
+                    <TableCell className="px-6 py-4 text-left font-semibold text-gray-600 dark:text-white border-b border-gray-200 dark:border-gray-700">
+                      Select
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-left font-semibold text-gray-600 dark:text-white border-b border-gray-200 dark:border-gray-700">
+                      Quantity
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-left font-semibold text-gray-600 dark:text-white border-b border-gray-200 dark:border-gray-700">
+                      Restricted
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-left font-semibold text-gray-600 dark:text-white border-b border-gray-200 dark:border-gray-700">
+                      Shift
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-left font-semibold text-gray-600 dark:text-white border-b border-gray-200 dark:border-gray-700">
+                      Identified Stock ID
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-left font-semibold text-gray-600 dark:text-white border-b border-gray-200 dark:border-gray-700">
+                      Actions
+                    </TableCell>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {tableData.map((data, index) => (
+                    <TableRow
+                      key={index}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                     >
-                      {orderDetails.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="px-5 py-4 sm:px-6 text-center">
-                    <Button
-                      size="sm"
-                      variant="primary"
-                      onClick={handleProcessProduction}
-                      disabled={processing || orderDetails.status === "Completed"}
-                    >
-                      {processing ? "Processing..." : "Process Production"}
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
+                      <TableCell className="px-6 py-4 text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">
+                        <input
+                          type="checkbox"
+                          className="rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-brand-600 dark:focus:ring-offset-gray-800"
+                          checked={selectedItems.has(index)}
+                          onChange={() => handleCheckboxChange(index)}
+                        />
+                      </TableCell>
+                      <TableCell className="px-6 py-4 text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">
+                        {data.quantity}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">
+                        {data.restricted}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">
+                        {data.shift}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">
+                        {data.identifiedStockID}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 flex items-center gap-4 border-b border-gray-200 dark:border-gray-700">
+                        <Button
+                          size="sm"
+                          onClick={() => handleEditClick(index, data)}
+                          startIcon={<FaEdit />}
+                          aria-label="Edit"
+                          className="bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 hover:text-blue-400"
+                        >
+                          <></>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => console.log("Print")}
+                          startIcon={<FaPrint />}
+                          aria-label="Print"
+                          className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          <></>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => console.log("Save")}
+                          startIcon={<FaSave />}
+                          aria-label="Save"
+                          className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          <></>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDeleteClick(index)}
+                          startIcon={<FaTrash />}
+                          aria-label="Delete"
+                          className="bg-red-300 text-red-500 hover:bg-red-500/30 hover:text-red-400 transition-colors" // Added transition-colors
+                        >
+                          <></>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 };
 
-export default ProductionOrderLookup;
+export default ProductionOrderPage;

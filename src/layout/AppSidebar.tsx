@@ -40,8 +40,7 @@ const navItems: NavItem[] = [
     icon: <LuFactory />,
     name: "Production Management",
     subItems: [{ name: "Manufacturing Insights", path: "/production", pro: false },
-      { name: "Retrieve Production Data", path: "/production-details", pro: false },
-      { name: "Retrieve PO Metadata", path: "/production-info", pro: false },
+      { name: "Process Production", path: "/production-details", pro: false },
     ],
   },
   {

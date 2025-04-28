@@ -6,7 +6,7 @@ import {
     TableRow,
   } from "../ui/table";
   import { FaCheckCircle, FaTimesCircle, FaPauseCircle, FaClock, FaCheck } from "react-icons/fa";
-  import { BiStore } from "react-icons/bi"; 
+  import { BiStore } from "react-icons/bi"; // Icon for Store Operations
   
   interface StoreOperationItem {
     id: number;
