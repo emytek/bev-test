@@ -52,6 +52,7 @@ export default function App() {
     setText(e.target.value);
   };
 
+
   return (
     <>
       <Router>
@@ -61,7 +62,8 @@ export default function App() {
         <Routes>
           {/* Dashboard Layout */}
           <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<ProtectedRoute>< Home/></ProtectedRoute>} />
+            {/* <Route path="/dashboard" element={<ProtectedRoute>< Home/></ProtectedRoute>} /> */}
+            <Route path="/dashboard" element={< Home/>} />
             <Route index path="/production" element={<ProtectedRoute><Production /></ProtectedRoute>} />
             <Route index path="/production-details" element={<ProtectedRoute><ProductionOrderPage /></ProtectedRoute>} />
             
