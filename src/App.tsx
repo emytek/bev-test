@@ -43,14 +43,14 @@ import ProductionOrderPage from "./components/operations/ProductionMetrics/Produ
 export default function App() {
   // const { promptVisible, showInstallPrompt } = useInstallPrompt();
   const [scannedCode, setScannedCode] = useState<string | null>(null);
-  const [text, setText] = useState<string>(""); 
+  // const [setText] = useState<string>(""); 
 
   useLocalNotification();
   usePushNotifications();
 
-  const generateBarCode = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setText(e.target.value);
-  };
+  // const generateBarCode = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setText(e.target.value);
+  // };
 
 
   return (
@@ -121,8 +121,7 @@ export default function App() {
       {/* <h1>Testing...</h1>
       <input type="text" value={text} onChange={generateBarCode} /> */}
       
-      <BarcodeScanner onScan={setScannedCode} onError={(err) => console.error(err)} />
-      {/* {!scannedCode ? (
+      {!scannedCode ? (
         <BarcodeScanner onScan={setScannedCode} onError={(err) => console.error(err)} />
       ) : (
         <div className="p-4 bg-green-200 rounded-md">
@@ -134,7 +133,7 @@ export default function App() {
             Scan Again
           </button>
         </div>
-      )} */}
+      )}
     </div>
     </>
   );
