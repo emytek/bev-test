@@ -118,10 +118,11 @@ export default function App() {
       {/* <ScannerBot /> */}
 
       <BarcodeGenerator/>
-      <h1>Testing...</h1>
-      <input type="text" value={text} onChange={generateBarCode} />
+      {/* <h1>Testing...</h1>
+      <input type="text" value={text} onChange={generateBarCode} /> */}
       
-      {!scannedCode ? (
+      <BarcodeScanner onScan={setScannedCode} onError={(err) => console.error(err)} />
+      {/* {!scannedCode ? (
         <BarcodeScanner onScan={setScannedCode} onError={(err) => console.error(err)} />
       ) : (
         <div className="p-4 bg-green-200 rounded-md">
@@ -133,7 +134,7 @@ export default function App() {
             Scan Again
           </button>
         </div>
-      )}
+      )} */}
     </div>
     </>
   );
