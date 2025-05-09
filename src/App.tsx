@@ -80,9 +80,9 @@ export default function App() {
                   <Route
                     path="/dashboard"
                     element={
-                      <ProtectedRoute>
+                      // <ProtectedRoute>
                         <Home />
-                      </ProtectedRoute>
+                      // </ProtectedRoute>
                     }
                   />
                   {/* Production */}
@@ -90,21 +90,21 @@ export default function App() {
                     index
                     path="/production"
                     element={
-                      <ProtectedRoute>
+                      // <ProtectedRoute>
                         <Production />
-                      </ProtectedRoute>
+                      // </ProtectedRoute>
                     }
                   />
                   <Route
                     index
                     path="/production-details"
                     element={
-                      <ProtectedRoute>
+                      // <ProtectedRoute>
                         <ProductionOrderPage
                           setStockIdToPrint={setStockIdToPrint}
                           onPrint={handlePrint}
                         />
-                      </ProtectedRoute>
+                      // </ProtectedRoute>
                     }
                   />
 
@@ -112,9 +112,9 @@ export default function App() {
                     index
                     path="/reports"
                     element={
-                      <ProtectedRoute>
+                      // <ProtectedRoute>
                         <ProductionOrderList />
-                      </ProtectedRoute>
+                      // </ProtectedRoute>
                     }
                   />
 
