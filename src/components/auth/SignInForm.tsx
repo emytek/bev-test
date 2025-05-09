@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EyeIcon, EyeCloseIcon } from "../../icons";
@@ -10,6 +10,7 @@ import { Loader } from "../ui/loader/Loader";
 import { useAuth } from "../../hooks/useAuth";
 import { LoginRequest } from "../../types/authTypes";
 import Alert, { AlertProps } from "../ui/alert/Alert";
+import { toast, Toaster } from "sonner";
 
 const signInSchema = z.object({
   userNameEmail: z.string().min(3, "Invalid username or email"),
@@ -24,6 +25,10 @@ export default function SignInForm() {
     AlertProps,
     "title" | "message" | "variant"
   > | null>(null);
+  const [errorAlert, setErrorAlert] = useState<Pick<
+  AlertProps,
+  "title" | "message" | "variant"
+> | null>(null);
   const { login, loading, error } = useAuth();
   const navigate = useNavigate();
   const {
@@ -34,27 +39,52 @@ export default function SignInForm() {
     resolver: zodResolver(signInSchema),
   });
 
-  const onSubmit = async (data: LoginRequest) => {
+  // const onSubmit = async (data: LoginRequest) => {
+  //   try {
+  //     await login(data);
+  //     // Display success alert
+  //     // setSuccessAlert({
+  //     //   variant: "success",
+  //     //   title: "Login Successful",
+  //     //   message: "You have successfully logged in!",
+  //     // });
+  //     // Navigate to dashboard after a brief delay
+  //     toast.success("Login successful")
+  //     setTimeout(() => {
+  //       navigate("/dashboard");
+  //     }, 2000); 
+  //   } catch (err) {
+  //     toast.error("Invalid Credentials");
+  //     if (err instanceof Error) {
+  //       console.error("Login Error:", err.message);
+  //     } else {
+  //       console.error("Login Error:", String(err));
+  //     }
+  //   }
+  // };
+
+  const onSubmit: SubmitHandler<LoginRequest> = async (data) => {
     try {
-      await login(data);
-      // Display success alert
-      setSuccessAlert({
-        variant: "success",
-        title: "Login Successful",
-        message: "You have successfully logged in!",
-      });
-      // Navigate to dashboard after a brief delay
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 2000); // Adjust the timeout as needed
-    } catch (err) {
-      if (err instanceof Error) {
+      const response = await login(data);
+      if (response?.message === "Login successful") {
+        toast.success("Login successful");
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 2000);
+      } else if (response?.message === "Invalid credentials") {
+        toast.error("Invalid Credentials");
+      }
+    } catch (err: any) {
+      if (err?.message && err.message !== "Login successful" && err.message !== "Invalid credentials") {
+        toast.error(err.message);
         console.error("Login Error:", err.message);
       } else {
         console.error("Login Error:", String(err));
       }
     }
   };
+
+  
 
   // Clear the success alert after a timeout
   useEffect(() => {
@@ -66,7 +96,17 @@ export default function SignInForm() {
     }
   }, [successAlert]);
 
+  useEffect(() => {
+    if (errorAlert) {
+      const timer = setTimeout(() => {
+        setErrorAlert(null);
+      }, 3000); 
+      return () => clearTimeout(timer); 
+    }
+  }, [errorAlert]);
+
   return (
+    <>
     <div className="flex flex-col flex-1 justify-center items-center h-screen">
       <div className="w-full max-w-md pt-10 mx-auto">
           {/* Success Message Alert */}
@@ -80,7 +120,17 @@ export default function SignInForm() {
             />
           </div>
         )}
-        {/* Error Message Alert */}
+          {errorAlert && (
+          <div className="mb-4">
+            <Alert
+              variant={errorAlert.variant}
+              title={errorAlert.title}
+              message={errorAlert.message}
+              showLink={false}
+            />
+          </div>
+        )}
+        {/* Error Message Alert on Form*/}
         {error && (
           <div className="mb-4">
             <Alert
@@ -183,5 +233,8 @@ export default function SignInForm() {
         </div>
       </div>
     </div>
+
+    <Toaster richColors />
+    </>
   );
 }

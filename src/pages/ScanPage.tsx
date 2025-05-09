@@ -1,5 +1,5 @@
 import { useState } from "react";
-import BarcodeScanner from "../components/BarcodeScanner";
+import BarcodeScanner from "../components/settings/BarcodeScanner";
 
 const ScanPage = () => {
   const [scannedCode, setScannedCode] = useState<string | null>(null);

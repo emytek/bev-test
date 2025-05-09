@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode; // Button text or content
   size?: "sm" | "md"; // Button size
-  variant?: "primary" | "outline" | "destructive"; // Button variant
+  variant?: "primary" | "outline" | "destructive" | "sync"; // Button variant
   startIcon?: ReactNode; // Icon before the text
   endIcon?: ReactNode; // Icon after the text
   className?: string; // Custom classes
@@ -33,6 +33,8 @@ const Button: React.FC<ButtonProps> = ({
       "bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03] dark:hover:text-gray-300",
     destructive:
       "bg-red-500 text-white shadow-theme-xs hover:bg-red-600 disabled:bg-red-300",
+    sync: 
+      "bg-black text-white hover:bg-gray-800 transition-colors duration-200"
   };
   
 

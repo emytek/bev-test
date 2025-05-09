@@ -3,15 +3,12 @@ import { Link, useLocation } from "react-router";
 
 // Assume these icons are imported from an icon library
 import {
-  BoxCubeIcon,
   // CalenderIcon,
   ChevronDownIcon,
   GridIcon,
   HorizontaLDots,
   // ListIcon,
   // PageIcon,
-  PieChartIcon,
-  PlugInIcon,
   // TableIcon,
   // UserCircleIcon,
 } from "../icons";
@@ -22,6 +19,7 @@ import {
 } from "react-icons/lu";
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
+import { BiBarcodeReader } from "react-icons/bi";
 
 type NavItem = {
   name: string;
@@ -34,13 +32,14 @@ const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
     name: "Dashboard",
-    subItems: [{ name: "Overview", path: "/", pro: false }],
+    subItems: [{ name: "Overview", path: "/dashboard", pro: false }],
   },
   {
     icon: <LuFactory />,
     name: "Production Management",
     subItems: [{ name: "Manufacturing Insights", path: "/production", pro: false },
       { name: "Process Production", path: "/production-details", pro: false },
+      { name: "Reports", path: "/reports", pro: false },
     ],
   },
   {
@@ -59,55 +58,54 @@ const navItems: NavItem[] = [
     subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
   },
   {
-    name: "Reports & Analytics",
-    icon: < PieChartIcon />,
-    subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
-  },
+    name: "Barcode Scanner",
+    icon: <BiBarcodeReader />,
+    subItems: [{ name: "Scan code", path: "/scanner", pro: false }],
+  }
+];
+
+const othersItems: NavItem[] = [
+  // {
+  //   icon: <PieChartIcon />,
+  //   name: "Charts",
+  //   subItems: [
+  //     { name: "Line Chart", path: "/line-chart", pro: false },
+  //     { name: "Bar Chart", path: "/bar-chart", pro: false },
+  //   ],
+  // },
+  // {
+  //   icon: <BoxCubeIcon />,
+  //   name: "UI Elements",
+  //   subItems: [
+  //     { name: "Alerts", path: "/alerts", pro: false },
+  //     { name: "Avatar", path: "/avatars", pro: false },
+  //     { name: "Badge", path: "/badge", pro: false },
+  //     { name: "Buttons", path: "/buttons", pro: false },
+  //     { name: "Images", path: "/images", pro: false },
+  //     { name: "Videos", path: "/videos", pro: false },
+  //   ],
+  // },
+  // {
+  //   icon: <PlugInIcon />,
+  //   name: "Authentication",
+  //   subItems: [
+  //     { name: "Sign In", path: "/signin", pro: false },
+  //     { name: "Sign Up", path: "/signup", pro: false },
+  //   ],
+  // },
   {
     name: "Settings & Configuration",
     icon: <LuSettings />,
     subItems: [
-      { name: "Blank Page", path: "/blank", pro: false },
-      { name: "404 Error", path: "/error-404", pro: false },
+      { name: "Change Password", path: "/change-password", pro: false },
+      { name: "Theme Display", path: "/theme", pro: false }
     ],
   },
   {
-    name: "User Management",
+    name: "User Directory",
     icon: <LuUsers />,
     subItems: [
-      { name: "Blank Page", path: "/blank", pro: false },
-      { name: "404 Error", path: "/error-404", pro: false },
-    ],
-  },
-];
-
-const othersItems: NavItem[] = [
-  {
-    icon: <PieChartIcon />,
-    name: "Charts",
-    subItems: [
-      { name: "Line Chart", path: "/line-chart", pro: false },
-      { name: "Bar Chart", path: "/bar-chart", pro: false },
-    ],
-  },
-  {
-    icon: <BoxCubeIcon />,
-    name: "UI Elements",
-    subItems: [
-      { name: "Alerts", path: "/alerts", pro: false },
-      { name: "Avatar", path: "/avatars", pro: false },
-      { name: "Badge", path: "/badge", pro: false },
-      { name: "Buttons", path: "/buttons", pro: false },
-      { name: "Images", path: "/images", pro: false },
-      { name: "Videos", path: "/videos", pro: false },
-    ],
-  },
-  {
-    icon: <PlugInIcon />,
-    name: "Authentication",
-    subItems: [
-      { name: "Sign In", path: "/signin", pro: false },
-      { name: "Sign Up", path: "/signup", pro: false },
+      { name: "Manage Users", path: "/user-list", pro: false },
     ],
   },
 ];
