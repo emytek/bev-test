@@ -30,7 +30,7 @@ import ResetPassword from "./components/auth/ResetPassword";
 import RegisterUser from "./components/auth/Onboarding/CreateUser";
 import Production from "./pages/Production";
 // import { AuthProvider } from "./context/AuthContext";
-// import ProtectedRoute from "./components/auth/ProtectedRoute";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import ProductionOrderPage from "./components/operations/ProductionMetrics/process-production/ProductionOrder";
 import { OrderNumberProvider } from "./context/OrderNoContext";
@@ -80,9 +80,9 @@ export default function App() {
                   <Route
                     path="/dashboard"
                     element={
-                      // <ProtectedRoute>
-                      <Home />
-                      // </ProtectedRoute>
+                      <ProtectedRoute>
+                        <Home />
+                      </ProtectedRoute>
                     }
                   />
                   {/* Production */}
@@ -90,21 +90,21 @@ export default function App() {
                     index
                     path="/production"
                     element={
-                      // <ProtectedRoute>
-                      <Production />
-                      // </ProtectedRoute>
+                      <ProtectedRoute>
+                        <Production />
+                      </ProtectedRoute>
                     }
                   />
                   <Route
                     index
                     path="/production-details"
                     element={
-                      // <ProtectedRoute>
-                      <ProductionOrderPage
-                        setStockIdToPrint={setStockIdToPrint}
-                        onPrint={handlePrint}
-                      />
-                      // </ProtectedRoute>
+                      <ProtectedRoute>
+                        <ProductionOrderPage
+                          setStockIdToPrint={setStockIdToPrint}
+                          onPrint={handlePrint}
+                        />
+                      </ProtectedRoute>
                     }
                   />
 
@@ -112,9 +112,9 @@ export default function App() {
                     index
                     path="/reports"
                     element={
-                      // <ProtectedRoute>
-                      <ProductionOrderList />
-                      // </ProtectedRoute>
+                      <ProtectedRoute>
+                        <ProductionOrderList />
+                      </ProtectedRoute>
                     }
                   />
 
@@ -163,17 +163,6 @@ export default function App() {
 
                 {/* Onboarding */}
                 <Route path="/create-user" element={<RegisterUser />} />
-
-                <Route
-                  path="/print"
-                  element={
-                    <PrintDisplay
-                      stockIdToPrint={stockIdToPrint}
-                      completedQuantityToPrint={completedQuantityToPrint}
-                      productDescriptionToPrint={productDescriptionToPrint}
-                    />
-                  }
-                />
 
                 {/* Fallback Route */}
                 <Route path="*" element={<NotFound />} />
