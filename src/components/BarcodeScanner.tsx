@@ -52,10 +52,7 @@
 
 
 import { useEffect, useRef, useState } from "react";
-import {
-  BrowserMultiFormatReader,
-  IScannerControls,
-} from "@zxing/browser";
+import { BrowserMultiFormatReader, IScannerControls } from "@zxing/browser";
 
 interface BarcodeScannerProps {
   onScan: (result: string) => void;
@@ -66,39 +63,45 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onError }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [scannerControls, setScannerControls] = useState<IScannerControls | null>(null);
 
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
   useEffect(() => {
     const codeReader = new BrowserMultiFormatReader();
 
     const startScanner = async () => {
       try {
         const videoInputDevices = await BrowserMultiFormatReader.listVideoInputDevices();
-
         if (videoInputDevices.length === 0) {
-          throw new Error("No camera devices found.");
+          console.error("No camera found!");
+          return;
         }
 
-        let selectedDevice: MediaDeviceInfo | undefined;
+        let backCameraDeviceId: string | undefined;
+        for (const device of videoInputDevices) {
+          const label = device.label.toLowerCase();
+          if (label.includes("back") || label.includes("rear")) {
+            backCameraDeviceId = device.deviceId;
+            break; // Use the first identified back camera
+          }
+        }
 
-        if (isMobile) {
-          selectedDevice =
-            videoInputDevices.find((device) =>
-              /back|rear|environment/i.test(device.label)
-            ) || videoInputDevices[0];
+        let deviceIdToUse: string;
+        if (backCameraDeviceId) {
+          deviceIdToUse = backCameraDeviceId;
+        } else if (videoInputDevices.length > 0) {
+          console.warn("Back camera not explicitly found. Using the first available camera.");
+          deviceIdToUse = videoInputDevices[0].deviceId;
         } else {
-          selectedDevice =
-            videoInputDevices.find((device) =>
-              /front|user|face/i.test(device.label)
-            ) || videoInputDevices[0];
+          console.error("No video input devices found.");
+          return;
         }
 
         const controls = await codeReader.decodeFromVideoDevice(
-          selectedDevice.deviceId,
+          deviceIdToUse,
           videoRef.current!,
           (result) => {
             if (result) {
               onScan(result.getText());
+              // Optionally, stop scanning after the first successful scan
+              // controls.stop();
             }
           }
         );
@@ -113,21 +116,11 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onError }) => {
     startScanner();
 
     return () => {
-      scannerControls?.stop();
+      scannerControls?.stop(); // Stop scanner when component unmounts
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [onScan, onError]);
 
-  return (
-    <div className="rounded-xl shadow-lg p-4 border border-gray-200">
-      <video
-        ref={videoRef}
-        className="w-full h-60 rounded-lg object-cover bg-black"
-        playsInline
-        muted
-      />
-    </div>
-  );
+  return <video ref={videoRef} className="w-70 h-60" />;
 };
 
 export default BarcodeScanner;
