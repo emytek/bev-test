@@ -81,7 +81,7 @@ export default function App() {
                     path="/dashboard"
                     element={
                       // <ProtectedRoute>
-                        <Home />
+                      <Home />
                       // </ProtectedRoute>
                     }
                   />
@@ -91,7 +91,7 @@ export default function App() {
                     path="/production"
                     element={
                       // <ProtectedRoute>
-                        <Production />
+                      <Production />
                       // </ProtectedRoute>
                     }
                   />
@@ -100,10 +100,10 @@ export default function App() {
                     path="/production-details"
                     element={
                       // <ProtectedRoute>
-                        <ProductionOrderPage
-                          setStockIdToPrint={setStockIdToPrint}
-                          onPrint={handlePrint}
-                        />
+                      <ProductionOrderPage
+                        setStockIdToPrint={setStockIdToPrint}
+                        onPrint={handlePrint}
+                      />
                       // </ProtectedRoute>
                     }
                   />
@@ -113,7 +113,7 @@ export default function App() {
                     path="/reports"
                     element={
                       // <ProtectedRoute>
-                        <ProductionOrderList />
+                      <ProductionOrderList />
                       // </ProtectedRoute>
                     }
                   />
@@ -163,6 +163,17 @@ export default function App() {
 
                 {/* Onboarding */}
                 <Route path="/create-user" element={<RegisterUser />} />
+
+                <Route
+                  path="/print"
+                  element={
+                    <PrintDisplay
+                      stockIdToPrint={stockIdToPrint}
+                      completedQuantityToPrint={completedQuantityToPrint}
+                      productDescriptionToPrint={productDescriptionToPrint}
+                    />
+                  }
+                />
 
                 {/* Fallback Route */}
                 <Route path="*" element={<NotFound />} />
