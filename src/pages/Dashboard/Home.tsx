@@ -5,7 +5,6 @@ import DailyProduction from "../../components/operations//RecentProduction";
 import StoreOperationsStatus from "../../components/operations//RecentStores";
 import WarehouseAndSalesMetrics from "../../components/operations//OtherMetrics";
 import OperationsOverview from "../../components/operations/OperationsOverview";
-//import Barcode from "react-barcode";
 
 
 export default function Home() {
@@ -15,7 +14,6 @@ export default function Home() {
         title="Bevcan App"
         description="Solution ReactPWA for Bevcan"
       />
-       {/* <Barcode value="62682982" /> */}
       <div className="grid grid-cols-12 gap-4 md:gap-6">
         <div className="col-span-12 space-y-6 xl:col-span-7">
           <OperationsOverview />

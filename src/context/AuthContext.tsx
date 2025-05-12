@@ -1,4 +1,4 @@
-// AuthContext.tsx
+
 import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LoginResponse, User } from '../types/authTypes';
@@ -150,18 +150,20 @@ export const useAuth = () => {
   return useAuthProvider(); // Directly use the provider context
 };
 
-
+// AuthContext.tsx
 // import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
 // import { useNavigate } from 'react-router-dom';
 // import { LoginResponse, User } from '../types/authTypes';
 // import { getFromStorage, removeFromStorage } from '../utils/storage';
 // import { jwtDecode } from 'jwt-decode';
-// import axiosInstance from "../api/axiosInstance"; // Import your axiosInstance
+// import axiosInstance from "../api/axiosInstance"; // Ensure this import exists
+// import { toast } from 'sonner'; // Assuming you use sonner for toasts
 
 // interface AuthContextType {
 //   token: string | null;
 //   isAuthenticated: boolean;
 //   user: User | null;
+//   isAuthLoading: boolean; // Add loading state
 //   login: (data: LoginResponse, persist?: boolean) => void;
 //   logout: () => void;
 //   updateUser: (updatedUserData: Partial<User>) => void;
@@ -171,13 +173,16 @@ export const useAuth = () => {
 
 // export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 //   const [token, setToken] = useState<string | null>(getFromStorage('accessToken') || null);
-//   const [user, setUser] = useState<User | null>(null); // User is initialized to null
+//   const [user, setUser] = useState<User | null>(null);
+//   const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true); // Initial loading state
 //   const navigate = useNavigate();
-//   const sessionTimeout = 2 * 60 * 60 * 1000;
+//   const sessionTimeout = 2 * 60 * 60 * 1000; // 2 hours
 
 //   console.log('AuthContext: Initial token from storage:', token);
 //   console.log('AuthContext: Initial user state:', user);
+//   console.log('AuthContext: Initial loading state:', isAuthLoading);
 
+//   // isAuthenticated is derived from token and user
 //   const isAuthenticated = !!token && !!user;
 //   console.log('AuthContext: isAuthenticated state:', isAuthenticated);
 
@@ -186,6 +191,7 @@ export const useAuth = () => {
 //     setToken(null);
 //     setUser(null);
 //     removeFromStorage('accessToken');
+//     setIsAuthLoading(false); // Set loading to false after logout
 //     navigate('/');
 //   }, [navigate]);
 
@@ -193,46 +199,55 @@ export const useAuth = () => {
 //   const fetchUserProfile = useCallback(async () => {
 //     if (!token) {
 //       setUser(null);
+//       setIsAuthLoading(false); // Not loading if no token
 //       return;
 //     }
+//     setIsAuthLoading(true); // Start loading before fetching
 //     try {
 //       console.log('AuthContext: Attempting to fetch user profile...');
 //       // Assuming your backend has an endpoint to get the current user's profile
 //       // and that axiosInstance automatically handles the Authorization header.
-//       const response = await axiosInstance.get<any>('/api/v1/user/me'); // Adjust endpoint as needed
+//       const response = await axiosInstance.get<any>('/api/v1/user/me'); // Adjust endpoint as needed (e.g. /api/profile)
       
 //       if (response.data?.status) {
 //         console.log('AuthContext: User profile fetched successfully:', response.data.user);
 //         setUser(response.data.user); // Set the user state with the fetched data
 //       } else {
 //         console.warn('AuthContext: Failed to fetch user profile - ', response.data?.message || 'Unknown error');
-//         logout(); // Log out if the user profile cannot be fetched
+//         // If API indicates failure, clear token and log out
+//         toast.error(response.data?.message || "Failed to fetch user profile. Please login again.");
+//         logout(); 
 //       }
 //     } catch (error: any) {
 //       console.error('AuthContext: Error fetching user profile:', error);
 //       // If the token is invalid or expired, logout the user
 //       if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-//         console.error("Session expired or invalid. Please log in again.");
+//         toast.error("Session expired or invalid. Please log in again.");
 //         logout();
 //       } else {
-//         // Handle other network errors or server issues
-//         console.error("AuthContext: Network or server error fetching user profile.");
-//         // Optionally, you might not want to logout here for transient errors.
-//         // For now, we'll keep logout to ensure a clean state if user data is crucial.
-//         logout();
+//         // Handle other network errors or server issues.
+//         // For enterprise, consider a more specific error message or retry logic.
+//         toast.error(error.message || "A network error occurred. Please try again.");
+//         logout(); // Log out to ensure a clean state
 //       }
+//     } finally {
+//       setIsAuthLoading(false); // Always stop loading, regardless of success or failure
 //     }
 //   }, [token, logout]); // Dependency on token and logout
 
+//   // Effect to handle initial token check and user profile fetch
 //   useEffect(() => {
 //     console.log('AuthContext: useEffect - token changed:', token);
 //     if (token) {
-//       // Try to decode token (for logging/debug)
 //       try {
+//         // Optional: Basic token decoding for logging or pre-checks
 //         const decodedToken: any = jwtDecode(token);
 //         console.log('AuthContext: useEffect - decoded token:', decodedToken);
+//         // Consider adding a check for token expiry here if you want to handle it client-side
+//         // before making the API call. If (decodedToken.exp * 1000 < Date.now()) logout();
 //       } catch (error) {
 //         console.error('AuthContext: useEffect - Error decoding token:', error);
+//         toast.error("Invalid token. Please log in again.");
 //         logout(); // If token is malformed, logout
 //         return;
 //       }
@@ -240,15 +255,18 @@ export const useAuth = () => {
 //       // Fetch user profile when token is present
 //       fetchUserProfile();
 //     } else {
+//       // No token, ensure user is null and loading is false
 //       setUser(null);
-//       console.log('AuthContext: useEffect - token is null, setting user to null');
+//       setIsAuthLoading(false);
+//       console.log('AuthContext: useEffect - token is null, setting user to null and loading to false');
 //     }
 //   }, [token, logout, fetchUserProfile]); // Add fetchUserProfile to dependencies
 
+//   // Inactivity Timer Logic
 //   const resetInactivityTimer = useCallback(() => {
 //     const logoutUser = () => {
 //       logout();
-//       alert('Your session has expired due to inactivity.');
+//       toast.info('Your session has expired due to inactivity.'); // Use toast instead of alert
 //     };
 
 //     let inactivityTimeout: NodeJS.Timeout | null = null;
@@ -267,9 +285,9 @@ export const useAuth = () => {
 //     window.addEventListener('mousemove', resetTimer);
 //     window.addEventListener('keydown', resetTimer);
 //     window.addEventListener('scroll', resetTimer);
-//     window.addEventListener('focus', resetTimer); // Consider when the tab becomes active again
+//     window.addEventListener('focus', resetTimer); 
 
-//     resetTimer();
+//     resetTimer(); // Start the timer immediately
 
 //     return () => {
 //       window.removeEventListener('mousemove', resetTimer);
@@ -280,25 +298,26 @@ export const useAuth = () => {
 //         clearTimeout(inactivityTimeout);
 //       }
 //     };
-//   }, [logout, sessionTimeout]); // Removed navigate as it's not directly used here
+//   }, [logout, sessionTimeout]); // Removed navigate as it's not directly used inside this useCallback
 
 //   useEffect(() => {
 //     console.log('AuthContext: useEffect - isAuthenticated changed:', isAuthenticated);
-//     if (isAuthenticated) {
+//     // Only start the inactivity timer if authenticated and not currently loading initial auth state
+//     if (isAuthenticated && !isAuthLoading) {
 //       return resetInactivityTimer();
 //     }
-//   }, [isAuthenticated, resetInactivityTimer]);
+//   }, [isAuthenticated, isAuthLoading, resetInactivityTimer]);
 
 //   const login = useCallback((data: LoginResponse, persist: boolean = false) => {
 //     console.log('AuthContext: login function called with data:', data, 'persist:', persist);
 //     setToken(data.token);
-//     setUser(data.user); // Ensure the user object from the API is being set here
+//     setUser(data.user); // Set user from login response
 //     const storage = persist ? localStorage : sessionStorage;
 //     storage.setItem("accessToken", data.token);
 //     console.log('AuthContext: login function - token set:', data.token);
 //     console.log('AuthContext: login function - user set:', data.user);
-//     // After successful login, you might want to immediately navigate
-//     // navigate('/dashboard'); // Example: navigate to dashboard after login
+//     setIsAuthLoading(false); // Ensure loading state is false after successful login
+//     // No navigate here, let the calling component handle navigation
 //   }, []); // Removed navigate from dependencies as it's not used in the function logic
 
 //   const updateUser = useCallback((updatedUserData: Partial<User>) => {
@@ -307,19 +326,20 @@ export const useAuth = () => {
 //       if (prevUser) {
 //         return { ...prevUser, ...updatedUserData };
 //       }
-//       // If prevUser is null, this means the user was not set yet or had an issue.
-//       // In such cases, assigning updatedUserData as User might be risky if it's not a full User object.
-//       // Consider fetching the full user profile again if prevUser is null here.
-//       return updatedUserData as User; 
+//       // This scenario (prevUser being null during an update) implies a state inconsistency.
+//       // Consider whether a full refetch might be more appropriate if prevUser is null.
+//       console.warn("AuthContext: updateUser called when prevUser is null. Data might be incomplete.");
+//       return updatedUserData as User; // Cast as User, assuming updatedUserData is a valid partial.
 //     });
-//     // The console.log below will show the state before the update fully propagates
+//     // Note: The console.log here might show the state before the update fully propagates
 //     // console.log('AuthContext: updateUser - user state updated:', { ...user, ...updatedUserData });
-//   }, []); // Removed `user` from dependencies to avoid stale closure and ensure `prevUser` is current
+//   }, []); // Empty dependency array for functional update of state
 
 //   const value: AuthContextType = {
 //     token,
 //     isAuthenticated,
 //     user,
+//     isAuthLoading, // Provide the loading state
 //     login,
 //     logout,
 //     updateUser,
