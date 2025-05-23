@@ -27,6 +27,7 @@ import { useAuth } from "../../../../context/AuthContext";
 import { ConfirmationModal } from "../../../ui/modal/ConfirmationModal";
 import {
   formattedProductionDate,
+  formattedDateTime,
   getFormattedIdentifiedStockID,
 } from "../../../../utils/idStockTime";
 
@@ -331,7 +332,7 @@ const ProductionOrderPage: React.FC<ProductionOrderProps> = ({ onPrint }) => {
       ProductionDetail,
       "ProductionDetailID" | "ProductionHeaderID"
     > = {
-      ProductionDate: formattedProductionDate(),
+      ProductionDate: formattedDateTime(),
       Shift: shift,
       isRestricted: restricted,
       CompletedQuantity: Number(quantity),
@@ -346,7 +347,7 @@ const ProductionOrderPage: React.FC<ProductionOrderProps> = ({ onPrint }) => {
         // Edit Path
         const editPayload = {
           productionDetailID: editingDetailId,
-          productionDate: formattedProductionDate(),
+          productionDate: formattedDateTime(),
           shift: shift,
           isRestricted: restricted,
           completedQuantity: Number(quantity),
@@ -382,7 +383,7 @@ const ProductionOrderPage: React.FC<ProductionOrderProps> = ({ onPrint }) => {
           const updatedDetails = [...prevDetails[0].ProductionDetails];
           updatedDetails[editingIndex] = {
             ...updatedDetails[editingIndex],
-            ProductionDate: formattedProductionDate(),
+            ProductionDate: formattedDateTime(),
             Shift: shift,
             isRestricted: restricted,
             CompletedQuantity: Number(quantity),
@@ -868,7 +869,10 @@ const ProductionOrderPage: React.FC<ProductionOrderProps> = ({ onPrint }) => {
                           </td>
                           <td className="px-6 py-4">{detail.isRestricted}</td>
                           <td className="px-6 py-4">{detail.Shift}</td>
-                          <td className="px-6 py-4">{detail.ProductionDate}</td>
+                          {/* <td className="px-6 py-4">{detail.ProductionDate}</td> */}
+                          <td className="px-6 py-4">
+                          {formattedProductionDate()} 
+                          </td>
                           <td className="px-6 py-4">
                             {detail.IdentifiedStockID}
                           </td>

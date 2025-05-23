@@ -1,10 +1,22 @@
-// const now = new Date();
+
+/**
+ * Formats the current date and time into an ISO 8601 string in UTC.
+ * @returns {string} The current date and time formatted as an ISO 8601 UTC string.
+ */
+export const formattedDateTime = (): string => {
+  const now = new Date();
+
+  const isoString = now.toISOString();
+
+  return isoString;
+};
+
 export const formattedProductionDate = (): string => {
   const now = new Date();
   const day = String(now.getDate()).padStart(2, "0");
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const year = now.getFullYear();
-  return `${day}/${month}/${year}`;
+  return `${day}-${month}-${year}`;
 };
 
 export const formattedTime = (): string => {

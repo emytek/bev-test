@@ -221,7 +221,7 @@ const ScannerPage = () => {
             <div className="flex items-center gap-4">
               <BiBarcodeReader size={32} />
               <h1 className="text-xl font-semibold tracking-tight">
-                {scanAgain ? "Scan Barcode*" : scannedCode ? "Scan Successful" : "Ready to Scan"}
+                {scanAgain ? "Scan Barcode" : scannedCode ? "Scan Successful" : "Ready to Scan"}
               </h1>
             </div>
           </div>

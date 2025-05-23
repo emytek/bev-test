@@ -108,7 +108,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
 
   console.log(error)
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div className="dark:bg-gray-800 rounded-lg max-h-[70vh] overflow-y-auto p-6">
       <h4 className="mb-4 font-semibold text-gray-800 dark:text-white">
         Edit User
       </h4>
