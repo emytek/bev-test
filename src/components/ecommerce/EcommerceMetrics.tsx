@@ -5,11 +5,23 @@ import {
   GroupIcon,
 } from "../../icons";
 import Badge from "../ui/badge/Badge";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion"; 
+import { easeOut } from "framer-motion";
 
-const cardVariants = {
+// const cardVariants = {
+//   hidden: { opacity: 0, y: 30 },
+//   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+// };
+const cardVariants: Variants = { // Explicitly type cardVariants as Variants
   hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: easeOut
+    },
+  },
 };
 
 export default function EcommerceMetrics() {

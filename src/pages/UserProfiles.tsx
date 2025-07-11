@@ -55,12 +55,12 @@ import UserInfoCard from "../components/UserProfile/UserInfoCard";
 import PageMeta from "../components/common/PageMeta";
 import UserMetaCard from "../components/UserProfile/UserMetaCard";
 import { useState } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useUserAuth } from "../context/AuthContext";
 import { User } from "../types/authTypes";
 
 export default function UserProfiles() {
   const [isMetaCardOpen, setIsMetaCardOpen] = useState(false);
-  const { user: authUser, updateUser } = useAuth(); // Get the updateUser function
+  const { user: authUser, updateUser } = useUserAuth(); // Get the updateUser function
   const [localUser, setLocalUser] = useState<User | null>(authUser); // Local state for user data
 
   const handleUserUpdated = (updatedUser: User) => {

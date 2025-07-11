@@ -9,7 +9,8 @@ import axiosInstance from "../../api/axiosInstance";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Button from "../ui/button/Button";
-import { Loader } from "../ui/loader/Loader";
+import Loader from "../ui/loader/Loader";
+
 
 interface EditUserFormData {
   firstName: string;

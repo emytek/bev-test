@@ -174,22 +174,17 @@
 //   );
 // }
 
-import { useState, useEffect } from "react"; // Import useEffect
+import { useState } from "react";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Dropdown } from "../ui/dropdown/Dropdown";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { User } from "../../types/authTypes"; // Ensure you import the User type
+// import { User } from "../../types/authTypes";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const { user: globalUser } = useAuth(); // Get the user from the global context
-  const [localUser, setLocalUser] = useState<User | null>(globalUser); // Local state initialized with global user
-
-  useEffect(() => {
-    // Update local state whenever the global user state changes
-    setLocalUser(globalUser);
-  }, [globalUser]);
+  const { user, logout } = useAuth(); // Destructure isAuthenticated as well for logging
+  const navigate = useNavigate();
 
   function toggleDropdown() {
     setIsOpen(!isOpen);
@@ -198,9 +193,6 @@ export default function UserDropdown() {
   function closeDropdown() {
     setIsOpen(false);
   }
-
-  const { logout } = useAuth();
-  const navigate = useNavigate();
 
   const handleSignOut = () => {
     logout();
@@ -218,8 +210,9 @@ export default function UserDropdown() {
         </span>
 
         <span className="block mr-1 font-medium text-theme-sm">
-        {localUser?.firstName ? localUser.firstName : ""}
-        </span> {/* Use localUser */}
+          {/* Display user's first name, or an empty string if user is null */}
+          {user?.firstName || "Guest"} {/* Changed to "Guest" for better visual feedback */}
+        </span>
         <svg
           className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
@@ -243,14 +236,16 @@ export default function UserDropdown() {
       <Dropdown
         isOpen={isOpen}
         onClose={closeDropdown}
-        className="absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
+        className="absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
       >
         <div>
           <span className="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
-            {`${localUser?.firstName} ${localUser?.lastName}`} {/* Use localUser */}
+            {/* Display full name, handling potential null user */}
+            {user ? `${user.firstName} ${user.lastName}` : "Not logged in"} {/* Better feedback */}
           </span>
           <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
-            {localUser?.email} {/* Use localUser */}
+            {/* Display email, handling potential null user */}
+            {user?.email || "No email available"} {/* Better feedback */}
           </span>
         </div>
 

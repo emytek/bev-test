@@ -8,7 +8,8 @@ import { toast } from "sonner";
 import { NewModal } from "../ui/modal/ConfirmationModal";
 import EditUserForm from "./EditUser";
 import axiosInstance from "../../api/axiosInstance";
-import { Loader } from "../ui/loader/Loader";
+import Loader from "../ui/loader/Loader";
+
 // import NewModal from "../../ui/modal/NewModal";
 // import EditUserForm from "./EditUserForm"; // Create this component
 

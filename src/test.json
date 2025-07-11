@@ -1,0 +1,64 @@
+
+
+
+
+{
+    "status": true,
+    "message": "Success",
+    "data": [
+        {
+            "ProductionHeaderID": "f068e4ee-0e28-44dc-bc55-8cc73820148a",
+            "SAPProductionOrderID": "109",
+            "SAPProductionOrderObjectID": "FA163E1644311FD092B37BAEDA939F6A",
+            "SAPProductionProposalID": "109",
+            "SAPProductionProposalObjectID": "FA163E1644311FD092B37C6907C6DF6A",
+            "SAPSupplyTaskID": "243",
+            "SAPMakeTaskID": "244",
+            "SAPProductID": "AMST_33CL",
+            "SAPProductDescription": "330 AMSTEL MALTA NG 1402",
+            "SAPPlannedQuantity": 4000.00,
+            "CompletedQuantity": 2080.00,
+            "StatusCode": 0,
+            "Failed": true,
+            "Machine": "Machine 1",
+            "ProductionDate": "2025-06-17T01:00:00+01:00",
+            "UoMQuantityPallet": 8169.00,
+            "isApproved": true,
+            "isFinished": true,
+            "isCanceled": false,
+            "IsPosted": false,
+            "ProductionDetails": [
+                {
+                    "ProductionDetailID": "ae84ee32-46d4-41af-8bf7-b5e0860b3788",
+                    "ProductionHeaderID": "f068e4ee-0e28-44dc-bc55-8cc73820148a",
+                    "ProductionDate": "2025-06-15T05:10:11.543+01:00",
+                    "Shift": "A",
+                    "isRestricted": "No",
+                    "CompletedQuantity": 450.00,
+                    "IdentifiedStockID": "25061505101154351609"
+                },
+                {
+                    "ProductionDetailID": "d78b05d7-8652-4047-895a-82cad0f4569d",
+                    "ProductionHeaderID": "f068e4ee-0e28-44dc-bc55-8cc73820148a",
+                    "ProductionDate": "2025-06-15T05:09:48.5+01:00",
+                    "Shift": "M",
+                    "isRestricted": "No",
+                    "CompletedQuantity": 830.00,
+                    "IdentifiedStockID": "25061505094850147409"
+                }
+            ]
+        }
+    ]
+}
+
+
+
+
+
+
+
+
+
+
+
+

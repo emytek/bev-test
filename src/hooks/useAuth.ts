@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { loginUser } from "../api/authApi";
 import { LoginRequest, LoginResponse, LoginResponseRaw } from "../types/authTypes";
-import { useAuth as useAuthProvider } from "../context/AuthContext"; 
+import { useUserAuth as useAuthProvider } from "../context/AuthContext"; 
 
 
 

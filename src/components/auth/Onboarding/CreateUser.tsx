@@ -136,7 +136,6 @@
 // export default RegisterUser;
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -146,9 +145,10 @@ import Alert, { AlertProps } from "../../ui/alert/Alert";
 import Label from "../../form/Label";
 import Input from "../../form/input/InputField";
 import Button from "../../ui/button/Button";
-import { Loader } from "../../ui/loader/Loader";
+
 import { EyeCloseIcon, EyeIcon } from "../../../icons";
 import { toast, Toaster } from "sonner";
+import Loader from "../../ui/loader/Loader";
 
 interface RegisterRequest {
   firstName: string;
@@ -244,7 +244,6 @@ export default function RegisterUserForm() {
   const [error, setError] = useState<string | null>(null);
   const [successAlertVisible, setSuccessAlertVisible] = useState(false);
   const [isSuspendedLocal, setIsSuspendedLocal] = useState(""); // Local state for the select value
-  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -261,9 +260,10 @@ export default function RegisterUserForm() {
 
       if (response.data.status) {
         setSuccessAlertVisible(true);
-        setTimeout(() => {
-          navigate("/");
-        }, 3000);
+        toast.success("Account registered successfully!");
+        // setTimeout(() => {
+        //   navigate("/");
+        // }, 3000);
       } else {
         setError(response.data.message || "Failed to register user.");
       }
@@ -301,231 +301,247 @@ export default function RegisterUserForm() {
 
   return (
     <>
-    <div className="relative flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 py-12 sm:px-6 lg:px-8">
-      <div className="absolute top-3 left-6">
-        <img
-          src="/images/logo/wyze.png"
-          alt="Company Logo"
-          className="w-16 h-auto"
-        />
-      </div>
-      <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 sm:p-8 lg:max-w-2xl xl:max-w-4xl">
-        <AnimatePresence>
-          {successAlertVisible && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="mb-5"
-            >
-              <Alert {...successAlertProps} />
-            </motion.div>
-          )}
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="mb-5"
-            >
-              <Alert {...errorAlertProps} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <div className="mb-5 sm:mb-8">
-          <h4 className="mb-2 font-semibold text-gray-800 dark:text-white text-title-sm sm:text-title-md">
-            Register User
-          </h4>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Fill in the details to create a new user.
-          </p>
-        </div>
+      <div className="relative flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 py-12 sm:px-6 lg:px-8">
+        <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 sm:p-8 lg:max-w-2xl xl:max-w-4xl">
+          <AnimatePresence>
+            {successAlertVisible && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="mb-5"
+              >
+                <Alert {...successAlertProps} />
+              </motion.div>
+            )}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="mb-5"
+              >
+                <Alert {...errorAlertProps} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <div className="mb-5 sm:mb-8">
+            <h4 className="mb-2 font-semibold text-gray-800 dark:text-white text-title-sm sm:text-title-md">
+              Register User
+            </h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Fill in the details to create a new user.
+            </p>
+          </div>
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="space-y-4 sm:space-y-5"
-        >
-          <div className="lg:flex lg:space-x-8">
-            <div className="flex flex-col space-y-4 lg:w-1/2">
-              <div>
-                <Label htmlFor="firstName">
-                  First Name <span className="text-error-500">*</span>
-                </Label>
-                <Input
-                  id="firstName"
-                  {...register("firstName", {
-                    required: "First name is required",
-                  })}
-                  placeholder="Enter first name"
-                  error={!!errors.firstName}
-                  hint={errors.firstName?.message}
-                />
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-4 sm:space-y-5"
+          >
+            <div className="lg:flex lg:space-x-8">
+              <div className="flex flex-col space-y-4 lg:w-1/2">
+                <div>
+                  <Label htmlFor="firstName">
+                    First Name <span className="text-error-500">*</span>
+                  </Label>
+                  <Input
+                    id="firstName"
+                    {...register("firstName", {
+                      required: "First name is required",
+                    })}
+                    placeholder="Enter first name"
+                    error={!!errors.firstName}
+                    hint={errors.firstName?.message}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lastName">
+                    Last Name <span className="text-error-500">*</span>
+                  </Label>
+                  <Input
+                    id="lastName"
+                    {...register("lastName", {
+                      required: "Last name is required",
+                    })}
+                    placeholder="Enter last name"
+                    error={!!errors.lastName}
+                    hint={errors.lastName?.message}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email">
+                    Email <span className="text-error-500">*</span>
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    {...register("email", { required: "Email is required" })}
+                    placeholder="admin@example.com"
+                    error={!!errors.email}
+                    hint={errors.email?.message}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="userName">
+                    Username <span className="text-error-500">*</span>
+                  </Label>
+                  <Input
+                    id="userName"
+                    {...register("userName", {
+                      required: "Username is required",
+                    })}
+                    placeholder="Enter username"
+                    error={!!errors.userName}
+                    hint={errors.userName?.message}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phoneNumber">
+                    Phone No <span className="text-error-500">*</span>
+                  </Label>
+                  <Input
+                    id="phoneNumber"
+                    type="tel"
+                    {...register("phoneNumber", {
+                      required: "Phone number is required",
+                    })}
+                    placeholder="Enter phone number"
+                    error={!!errors.phoneNumber}
+                    hint={errors.phoneNumber?.message}
+                  />
+                </div>
               </div>
-              <div>
-                <Label htmlFor="lastName">
-                  Last Name <span className="text-error-500">*</span>
-                </Label>
-                <Input
-                  id="lastName"
-                  {...register("lastName", {
-                    required: "Last name is required",
-                  })}
-                  placeholder="Enter last name"
-                  error={!!errors.lastName}
-                  hint={errors.lastName?.message}
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">
-                  Email <span className="text-error-500">*</span>
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  {...register("email", { required: "Email is required" })}
-                  placeholder="admin@example.com"
-                  error={!!errors.email}
-                  hint={errors.email?.message}
-                />
-              </div>
-              <div>
-                <Label htmlFor="userName">
-                  Username <span className="text-error-500">*</span>
-                </Label>
-                <Input
-                  id="userName"
-                  {...register("userName", {
-                    required: "Username is required",
-                  })}
-                  placeholder="Enter username"
-                  error={!!errors.userName}
-                  hint={errors.userName?.message}
-                />
-              </div>
-              <div>
-                <Label htmlFor="phoneNumber">
-                  Phone No <span className="text-error-500">*</span>
-                </Label>
-                <Input
-                  id="phoneNumber"
-                  type="tel"
-                  {...register("phoneNumber", {
-                    required: "Phone number is required",
-                  })}
-                  placeholder="Enter phone number"
-                  error={!!errors.phoneNumber}
-                  hint={errors.phoneNumber?.message}
-                />
-              </div>
-            </div>
 
-            <div className="flex flex-col space-y-4 lg:w-1/2">
-              <div>
-                <Label htmlFor="userRole">
-                  User Role <span className="text-error-500">*</span>
-                </Label>
-                <Input
-                  id="userRole"
-                  {...register("userRole", {
-                    required: "User role is required",
-                  })}
-                  placeholder="Enter user role"
-                  error={!!errors.userRole}
-                  hint={errors.userRole?.message}
-                />
-              </div>
-              <div>
-                <Label htmlFor="company">
-                  Company <span className="text-error-500">*</span>
-                </Label>
-                <Input
-                  id="company"
-                  {...register("company", {
-                    required: "Company name is required",
-                  })}
-                  placeholder="Enter company name"
-                  error={!!errors.company}
-                  hint={errors.company?.message}
-                />
-              </div>
-              <div>
-                <Label htmlFor="isSuspended">
-                  Suspended <span className="text-error-500">*</span>
-                </Label>
-                <select
-                  id="isSuspended"
-                  value={isSuspendedLocal}
-                  className={`h-11 w-full appearance-none rounded-lg border ${
-                    errors.isSuspended
-                      ? "border-error-500 focus:border-error-300 focus:ring-error-500/20 dark:text-error-400 dark:border-error-500 dark:focus:border-error-800"
-                      : "border-gray-300 focus:border-brand-300 focus:ring-brand-500/10 dark:border-gray-700 dark:focus:border-brand-800"
-                  } bg-transparent px-4 py-2.5 pr-11 text-sm shadow-theme-xs placeholder:text-gray-400 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30`}
-                  {...register("isSuspended", {
-                    required: "Suspension status is required",
-                    onChange: (e) => setIsSuspendedLocal(e.target.value),
-                  })}
-                >
-                  <option value="" disabled>
-                    Suspended (Yes/No)
-                  </option>
-                  <option value="true">Yes</option>
-                  <option value="false">No</option>
-                </select>
-                {errors.isSuspended?.message && (
-                  <p className="mt-1.5 text-xs text-error-500">
-                    {errors.isSuspended.message}
-                  </p>
-                )}
-              </div>
-              <div>
-                {/* <Label htmlFor="password">
+              <div className="flex flex-col space-y-4 mt-4 lg:mt-0 lg:w-1/2">
+                <div>
+                  <Label htmlFor="userRole">
+                    User Role <span className="text-error-500">*</span>
+                  </Label>
+                  <select
+                    id="userRole"
+                    {...register("userRole")} // No need for required validation here, Zod handles it
+                    className={`
+                      block
+                      w-full
+                      px-3
+                      py-2
+                      border
+                      rounded-md
+                      shadow-sm
+                      focus:outline-none
+                      focus:ring-indigo-500
+                      focus:border-indigo-500
+                      sm:text-sm
+                      ${errors.userRole ? "border-red-500" : "border-gray-300"}
+                    `}
+                  >
+                    <option value="">Select a role</option>{" "}
+                    {/* Optional: A default placeholder option */}
+                    <option value="Admin">Admin</option>
+                    <option value="Production Supervisor">
+                      Production Supervisor
+                    </option>
+                    <option value="Sales Supervisor">Sales Supervisor</option>
+                    <option value="User">User</option>
+                  </select>
+                  {errors.userRole && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.userRole.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="company">
+                    Company <span className="text-error-500">*</span>
+                  </Label>
+                  <Input
+                    id="company"
+                    {...register("company", {
+                      required: "Company name is required",
+                    })}
+                    placeholder="Enter company name"
+                    error={!!errors.company}
+                    hint={errors.company?.message}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="isSuspended">
+                    Suspended <span className="text-error-500">*</span>
+                  </Label>
+                  <select
+                    id="isSuspended"
+                    value={isSuspendedLocal}
+                    className={`h-11 w-full appearance-none rounded-lg border ${
+                      errors.isSuspended
+                        ? "border-error-500 focus:border-error-300 focus:ring-error-500/20 dark:text-error-400 dark:border-error-500 dark:focus:border-error-800"
+                        : "border-gray-300 focus:border-brand-300 focus:ring-brand-500/10 dark:border-gray-700 dark:focus:border-brand-800"
+                    } bg-transparent px-4 py-2.5 pr-11 text-sm shadow-theme-xs placeholder:text-gray-400 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30`}
+                    {...register("isSuspended", {
+                      required: "Suspension status is required",
+                      onChange: (e) => setIsSuspendedLocal(e.target.value),
+                    })}
+                  >
+                    <option value="" disabled>
+                      Suspended (Yes/No)
+                    </option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                  {errors.isSuspended?.message && (
+                    <p className="mt-1.5 text-xs text-error-500">
+                      {errors.isSuspended.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  {/* <Label htmlFor="password">
                   Password <span className="text-error-500">*</span>
                 </Label> */}
-                <PasswordInput
-                  id="password"
-                  name="password"
-                  register={register}
-                  placeholder="Enter password"
-                  error={!!errors.password}
-                  hint={errors.password?.message}
-                  label="Password"
-                  required={true}
-                />
-              </div>
-              <div>
-                {/* <Label htmlFor="confirmPassword">
+                  <PasswordInput
+                    id="password"
+                    name="password"
+                    register={register}
+                    placeholder="Enter password"
+                    error={!!errors.password}
+                    hint={errors.password?.message}
+                    label="Password"
+                    required={true}
+                  />
+                </div>
+                <div>
+                  {/* <Label htmlFor="confirmPassword">
                   Confirm Password <span className="text-error-500">*</span>
                 </Label> */}
-                <PasswordInput
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  register={register}
-                  placeholder="Confirm password"
-                  error={!!errors.confirmPassword}
-                  hint={errors.confirmPassword?.message}
-                  label="Confirm Password"
-                  required={true}
-                />
+                  <PasswordInput
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    register={register}
+                    placeholder="Confirm password"
+                    error={!!errors.confirmPassword}
+                    hint={errors.confirmPassword?.message}
+                    label="Confirm Password"
+                    required={true}
+                  />
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="mt-5">
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gray-900 hover:bg-error-500 text-white transition py-2 rounded-lg flex justify-center items-center gap-2"
-            >
-              {loading && <Loader />}{" "}
-              {loading ? "Create Account" : "Create Account"}
-            </Button>
-          </div>
-        </form>
+            <div className="mt-5">
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gray-900 hover:bg-error-500 text-white transition py-2 rounded-lg flex justify-center items-center gap-2"
+              >
+                {loading && <Loader />}{" "}
+                {loading ? "Create Account" : "Create Account"}
+              </Button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
-    <Toaster richColors/>
+      <Toaster richColors />
     </>
   );
 }

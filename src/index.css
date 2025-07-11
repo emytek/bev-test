@@ -47,6 +47,7 @@ layer(base);
   --color-brand-200: #c2d6ff;
   --color-brand-300: #9cb9ff;
   --color-brand-400: #7592ff;
+  --color-custom-500: #465fff;
   --color-brand-500: #465fff;
   --color-brand-600: #3641f5;
   --color-brand-700: #2a31d8;
@@ -283,6 +284,32 @@ layer(base);
 }
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #344054;
+}
+
+/* For Webkit browsers (Chrome, Safari, Edge) */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px; /* For horizontal scrollbar */
+  width: 6px; /* For vertical scrollbar, if applicable */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Light track */
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #888; /* Darker thumb */
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #555; /* Even darker on hover */
+}
+
+/* For Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin; /* "auto" or "none" */
+  scrollbar-color: #888 #f1f1f1; /* thumb and track color */
 }
 
 @layer utilities {
@@ -780,4 +807,167 @@ span.flatpickr-weekday,
 
 .simplebar-scrollbar.simplebar-visible:before {
   @apply opacity-100;
+}
+
+/* Class to hide elements that should not appear in the printed document */
+.no-print {
+  display: none !important; /* Use !important to ensure override */
+}
+
+/* Adjust the outermost wrapper for print */
+.print-outer-wrapper {
+  min-height: auto !important; /* No need for minimum height on print */
+  background-color: transparent !important; /* Remove background color */
+  padding: 0 !important; /* Remove padding */
+}
+
+/* Target the main content container for print-specific adjustments */
+#printable-content {
+  /* Remove background, shadow, padding, and rounded corners for a clean print */
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important; /* Remove padding from the main content div */
+  width: 100% !important; /* Ensure it takes full width of the paper */
+  max-width: none !important; /* Remove max-width constraint */
+  margin: 0 !important; /* Remove auto margins */
+}
+
+/* Ensure all text and borders within the printable content are black for clarity */
+#printable-content * {
+  color: #000 !important; /* Force all text to black */
+ 
+  box-shadow: none !important; /* Remove any element shadows */
+  text-shadow: none !important; /* Remove any text shadows */
+}
+
+/* Specific adjustments for borders to ensure they are visible and black */
+#printable-content .border {
+  border-color: #000 !important; /* Ensure borders are black */
+}
+
+/* Page break control: try to keep sections and headers from breaking across pages */
+section {
+  page-break-inside: avoid; /* Avoid breaking sections across pages if possible */
+}
+
+header {
+  page-break-after: avoid; /* Try to keep the header on one page */
+}
+
+/* Ensure tables and their cells print correctly */
+table, th, td {
+  border-collapse: collapse; /* Collapse borders for a cleaner table print */
+}
+table {
+  width: 100%; /* Ensure tables take full available width */
+}
+
+.print-area {
+  display: none !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+.print-area.is-active-print-target {
+  display: block !important;
+  position: static !important; /* Reset position for normal flow in print */
+  top: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  overflow: visible !important;
+  background-color: white !important;
+  color: black !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Custom utility for extra small font size */
+@layer utilities {
+  .text-xxs {
+    font-size: 0.6rem; /* Adjust as needed for legibility on A4 */
+  }
+}
+
+/* Base styles for A4 page compatibility */
+@page {
+  size: A4 landscape; 
+  margin: 0; 
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.A4-page {
+  width: 210mm; /* A4 width */
+  min-height: 297mm;
+  margin: 0 auto; /* Center the page */
+  padding: 10mm; /* Add some padding for content to prevent hitting edges */
+  box-sizing: border-box;
+  font-family: 'Arial', sans-serif; /* A common, legible font */
+  font-size: 10pt; /* Default font size for the page */
+  display: flex; /* Use flexbox for overall page layout */
+  flex-direction: column; /* Stack components vertically */
+}
+
+/* Print specific styles to remove unnecessary borders/paddings */
+@media print {
+  .A4-page {
+    width: auto; /* Let browser determine width for print */
+    min-height: auto; /* Let browser determine height for print */
+    margin: 0;
+    padding: 0;
+    border: none;
+    flex-direction: column; /* Ensure column direction during print */
+    /* Ensure no background or text color issues from A4-page */
+    background-color: white !important;
+    color: black !important;
+  }
+
+  /* Ensure no page breaks inside critical sections if possible */
+  header, section {
+    page-break-inside: avoid;
+  }
+
+  /* Barcode visibility fix: IMPORTANT */
+  /* Ensure the background and text color are explicitly set for print */
+  .barcode {
+    background-color: black !important; /* Force black background */
+  }
+  .barcode > div {
+    background-color: white !important; /* Force white bars */
+  }
+  .barcode + .text-xs { /* Target the text below the barcode if needed */
+    color: black !important; /* Ensure barcode numbers are black */
+  }
+  /* If any parent element has a transparent background in print, override it */
+  .print-area, .is-active-print-target {
+    background-color: white !important; /* Ensure the print area itself has a white background */
+    color: black !important; /* Ensure all text is black */
+  }
+}
+
+/* Adjusting flex basis for mid-section boxes to approximate widths */
+/* These values are for visual balance; fine-tune if exact proportions are critical */
+.flex-1\/2 {
+  flex-basis: 48%; /* Approximately half for left/right views and adjusted for mid-section */
+}
+
+.flex-1\/4 {
+  flex-basis: 22%; /* Middle box, slightly less than 1/4 to accommodate gaps */
+}
+
+/* Barcode simulation styles */
+/* Changed barcode bars to white to contrast with black background */
+/* No change here from last time, but context matters with the print styles above */
+.barcode > div {
+  background-color: white; /* Default for screen */
 }

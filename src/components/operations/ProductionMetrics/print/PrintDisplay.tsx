@@ -72,12 +72,14 @@ interface PrintDisplayProps {
   stockIdToPrint: string | null;
   completedQuantityToPrint: number | null;
   productDescriptionToPrint: string | null;
+  orderNo: string | null;
 }
 
 const PrintDisplay: React.FC<PrintDisplayProps> = ({
   stockIdToPrint,
   completedQuantityToPrint,
   productDescriptionToPrint,
+  orderNo
 }) => {
   const svgRef = useRef < SVGSVGElement | null > (null);
 
@@ -101,8 +103,16 @@ const PrintDisplay: React.FC<PrintDisplayProps> = ({
   if (!stockIdToPrint) return null;
 
   return (
-    <div className="bg-white p-6 print:p-0 flex justify-center items-center min-h-[280px] print:min-h-auto">
-      <div className="bg-white rounded-lg shadow-md border border-gray-200 w-full max-w-md p-6 md:p-8 xl:p-10 print:shadow-none print:border-none flex flex-col items-center justify-between h-full print:h-auto">
+    <div className="bg-white p-6 print:p-0 flex justify-center items-center min-h-[280px] print:min-h-auto relative">
+      <div className="bg-white rounded-lg shadow-md border border-gray-200 w-full max-w-md p-6 md:p-8 xl:p-10 print:shadow-none print:border-none flex flex-col items-center justify-between h-full print:h-auto relative">
+        
+        {/* Order Number - Top Right */}
+        {orderNo && (
+          <div className="absolute top-4 right-4 bg-blue-50 text-blue-700 px-3 py-1 rounded-md text-sm font-medium shadow-sm print:static print:mt-2 print:mb-2 print:bg-white print:text-black">
+            Order No: <span className="font-semibold">{orderNo}</span>
+          </div>
+        )}
+
         {/* Header Section */}
         <header className="text-center mb-4 w-full">
           <h4 className="text-xl font-bold text-gray-700 print:text-black">
@@ -129,7 +139,7 @@ const PrintDisplay: React.FC<PrintDisplayProps> = ({
 
         {/* Barcode Section */}
         <div className="flex flex-col items-center justify-center mb-4 w-full">
-          <svg ref={svgRef} className="w-52 h-auto print:w-full" /> {/* Slightly increased width */}
+          <svg ref={svgRef} className="w-52 h-auto print:w-full" />
           <div className="text-center mt-3 print:text-black">
             <strong className="text-gray-600 text-base print:text-black">
               Batch ID:

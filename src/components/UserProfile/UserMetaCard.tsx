@@ -9,8 +9,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import axiosInstance from "../../api/axiosInstance";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { Loader } from "../ui/loader/Loader";
+
 import { FiSave } from "react-icons/fi";
+import Loader from "../ui/loader/Loader";
 
 export interface EditPersonalInformationFormData {
   firstName: string;
@@ -167,7 +168,7 @@ export default function UserMetaCard({
             </p>
           </div>
           <form className="flex flex-col" onSubmit={handleSubmit(onSubmit)}>
-            <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
+            <div className="custom-scrollbar overflow-y-auto px-2 pb-3">
               {/* Form fields remain the same, but now use propUser for defaultValues */}
               <div>
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
@@ -204,7 +205,7 @@ export default function UserMetaCard({
                     />
                   </div>
 
-                  <div className="col-span-2 lg:col-span-1">
+                  {/* <div className="col-span-2 lg:col-span-1">
                     <Label htmlFor="phoneNumber">Phone</Label>
                     <Input
                       type="text"
@@ -213,7 +214,7 @@ export default function UserMetaCard({
                       error={!!errors.phoneNumber}
                       hint={errors.phoneNumber?.message}
                     />
-                  </div>
+                  </div> */}
 
                   <div className="col-span-2 lg:col-span-1">
                     <Label htmlFor="userRole">Role</Label>

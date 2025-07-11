@@ -6,11 +6,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { EyeIcon, EyeCloseIcon } from "../../icons";
 import Checkbox from "../form/input/Checkbox";
 // import WyzeLogo from "/images/logo/wyze.png";
-import { Loader } from "../ui/loader/Loader";
+
 import { useAuth } from "../../hooks/useAuth";
 import { LoginRequest } from "../../types/authTypes";
 import Alert, { AlertProps } from "../ui/alert/Alert";
 import { toast, Toaster } from "sonner";
+import Loader from "../ui/loader/Loader";
 
 const signInSchema = z.object({
   userNameEmail: z.string().min(3, "Invalid username or email"),
@@ -146,7 +147,7 @@ export default function SignInForm() {
           Sign In
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Enter your email and password to sign in!
+          Enter your username or email and password to sign in!
         </p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -220,17 +221,7 @@ export default function SignInForm() {
           </button>
         </form>
 
-        <div className="mt-5">
-              <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
-                Don&apos;t have an account? {""}
-                <Link
-                  to="/create-user"
-                  className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
-                >
-                  Create User
-                </Link>
-              </p>
-        </div>
+
       </div>
     </div>
 

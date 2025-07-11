@@ -1,4 +1,5 @@
 
+
 import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LoginResponse, User } from '../types/authTypes';
@@ -11,7 +12,7 @@ interface AuthContextType {
   user: User | null;
   login: (data: LoginResponse, persist?: boolean) => void;
   logout: () => void;
-  updateUser: (updatedUserData: Partial<User>) => void; // Add the updateUser function
+  updateUser: (updatedUserData: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,17 +20,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(getFromStorage('accessToken') || null);
   const [user, setUser] = useState<User | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
   const navigate = useNavigate();
   const sessionTimeout = 2 * 60 * 60 * 1000;
 
-  console.log('AuthContext: Initial token from storage:', token);
-  console.log('AuthContext: Initial user state:', user);
 
-  const isAuthenticated = !!token && !!user;
-  console.log('AuthContext: isAuthenticated state:', isAuthenticated);
+  const isAuthenticated = !!token && !!user && !isInitializing;
 
   const logout = useCallback(() => {
-    console.log('AuthContext: Logging out');
     setToken(null);
     setUser(null);
     removeFromStorage('accessToken');
@@ -37,27 +35,73 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [navigate]);
 
   useEffect(() => {
-    console.log('AuthContext: useEffect - token changed:', token);
     if (token) {
       try {
-        const decodedToken: any = jwtDecode(token);
-        console.log('AuthContext: useEffect - decoded token:', decodedToken);
-        // If your token contains user information that you want to keep in sync
-        // with the main user object, you can merge it here. Otherwise, the
-        // user object from the login API response is the primary source.
-        // Example of merging (if needed):
-        // setUser((prevUser) => ({ ...prevUser, ...decodedToken }));
+        // Correctly type decodedToken to match JWT claims
+        interface DecodedTokenPayload {
+          nameid?: string;
+          unique_name?: string;
+          names?: string; // Contains "FirstName LastName"
+          company?: string;
+          role?: string;
+          // Add other claims if they exist and you need them
+          nbf?: number;
+          exp?: number;
+          iat?: number;
+        }
+
+        const decodedToken = jwtDecode<DecodedTokenPayload>(token);
+
+        // Parse firstName and lastName from 'names' claim
+        let firstName = '';
+        let lastName = '';
+        if (decodedToken.names) {
+          const nameParts = decodedToken.names.split(' ');
+          firstName = nameParts[0] || '';
+          lastName = nameParts.slice(1).join(' ') || '';
+        }
+
+        // Hydrate the user object from the DECODED JWT claims
+      
+        setUser({
+          id: decodedToken.nameid || '', // Map 'nameid' to 'id'
+          email: decodedToken.unique_name || '', // Map 'unique_name' to 'email'
+          firstName: firstName, // Mapped from 'names'
+          lastName: lastName,   // Mapped from 'names'
+          userRole: decodedToken.role || '', // Map 'role' to 'userRole'
+          company: decodedToken.company || '', // Map 'company' to 'company'
+
+          claims: [], // JWT usually doesn't have a 'claims' array at top-level
+          roles: decodedToken.role ? [decodedToken.role] : [], // Populate roles based on 'role' claim if present
+          isSuspended: false, // Default
+          dateTimeCreated: new Date().toISOString(), // Use a default or current date
+          dateTimeUpdated: new Date().toISOString(), // Use a default or current date
+          restrictToState: false, // Default
+          transactionState: '', // Default
+          emailConfirmed: false, // Default
+          passwordHash: '', // Should NEVER be in JWT
+          securityStamp: null, // Default
+          phoneNumber: '', // Default
+          phoneNumberConfirmed: false, // Default
+          twoFactorEnabled: false, // Default
+          lockoutEnabled: false, // Default
+          lockoutEndDateUtc: null, // Default
+          accessFailedCount: 0, // Default
+          userName: decodedToken.unique_name || '', // Map 'unique_name' to 'userName'
+          logins: [], // Default
+        } as User);
+
       } catch (error) {
-        console.error('AuthContext: useEffect - Error decoding token:', error);
-        logout();
+        logout(); // Logout if token is invalid
       }
     } else {
       setUser(null);
-      console.log('AuthContext: useEffect - token is null, setting user to null');
     }
-  }, [token, logout]);
+    setIsInitializing(false);
+  }, [token, logout]); // Depend on token and logout
 
   const resetInactivityTimer = useCallback(() => {
+    // ... (rest of your resetInactivityTimer logic - no changes needed here)
     const logoutUser = () => {
       logout();
       alert('Your session has expired due to inactivity.');
@@ -79,7 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     window.addEventListener('mousemove', resetTimer);
     window.addEventListener('keydown', resetTimer);
     window.addEventListener('scroll', resetTimer);
-    window.addEventListener('focus', resetTimer); // Consider when the tab becomes active again
+    window.addEventListener('focus', resetTimer);
 
     resetTimer();
 
@@ -92,35 +136,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         clearTimeout(inactivityTimeout);
       }
     };
-  }, [navigate, logout, sessionTimeout]);
+  }, [logout, sessionTimeout]);
 
   useEffect(() => {
-    console.log('AuthContext: useEffect - isAuthenticated changed:', isAuthenticated);
-    if (isAuthenticated) {
+    if (isAuthenticated && !isInitializing) {
       return resetInactivityTimer();
     }
-  }, [isAuthenticated, resetInactivityTimer]);
+  }, [isAuthenticated, resetInactivityTimer, isInitializing]);
 
   const login = useCallback((data: LoginResponse, persist: boolean = false) => {
-    console.log('AuthContext: login function called with data:', data, 'persist:', persist);
     setToken(data.token);
-    setUser(data.user); // Ensure the user object from the API is being set here
+    setUser(data.user); // <-- THIS IS CORRECT: It uses the full user object from the backend
     const storage = persist ? localStorage : sessionStorage;
     storage.setItem("accessToken", data.token);
-    console.log('AuthContext: login function - token set:', data.token);
-    console.log('AuthContext: login function - user set:', data.user);
-  }, []);
+    navigate('/dashboard');
+  }, [navigate]);
 
   const updateUser = useCallback((updatedUserData: Partial<User>) => {
-    console.log('AuthContext: updateUser called with:', updatedUserData);
     setUser((prevUser) => {
       if (prevUser) {
         return { ...prevUser, ...updatedUserData };
       }
+
       return updatedUserData as User;
     });
-    console.log('AuthContext: updateUser - user state updated:', { ...user, ...updatedUserData });
-  }, [user]);
+  }, []);
 
   const value: AuthContextType = {
     token,
@@ -128,8 +168,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     login,
     logout,
-    updateUser, // Include the updateUser function in the context value
+    updateUser,
   };
+
+  if (isInitializing) {
+    return <div>Loading authentication...</div>;
+  }
 
   return (
     <AuthContext.Provider value={value}>
@@ -146,24 +190,21 @@ export const useAuthProvider = () => {
   return context;
 };
 
-export const useAuth = () => {
-  return useAuthProvider(); // Directly use the provider context
+export const useUserAuth = () => {
+  return useAuthProvider();
 };
 
-// AuthContext.tsx
+
 // import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
 // import { useNavigate } from 'react-router-dom';
 // import { LoginResponse, User } from '../types/authTypes';
-// import { getFromStorage, removeFromStorage } from '../utils/storage';
+// import { getFromStorage, removeFromStorage, saveToStorage } from '../utils/storage'; // Import saveToStorage
 // import { jwtDecode } from 'jwt-decode';
-// import axiosInstance from "../api/axiosInstance"; // Ensure this import exists
-// import { toast } from 'sonner'; // Assuming you use sonner for toasts
 
 // interface AuthContextType {
 //   token: string | null;
 //   isAuthenticated: boolean;
 //   user: User | null;
-//   isAuthLoading: boolean; // Add loading state
 //   login: (data: LoginResponse, persist?: boolean) => void;
 //   logout: () => void;
 //   updateUser: (updatedUserData: Partial<User>) => void;
@@ -173,17 +214,16 @@ export const useAuth = () => {
 
 // export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 //   const [token, setToken] = useState<string | null>(getFromStorage('accessToken') || null);
-//   const [user, setUser] = useState<User | null>(null);
-//   const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true); // Initial loading state
+//   // Initialize user state from local storage or null
+//   const [user, setUser] = useState<User | null>(getFromStorage('user') || null);
+//   const [isInitializing, setIsInitializing] = useState(true);
 //   const navigate = useNavigate();
 //   const sessionTimeout = 2 * 60 * 60 * 1000; // 2 hours
 
 //   console.log('AuthContext: Initial token from storage:', token);
 //   console.log('AuthContext: Initial user state:', user);
-//   console.log('AuthContext: Initial loading state:', isAuthLoading);
 
-//   // isAuthenticated is derived from token and user
-//   const isAuthenticated = !!token && !!user;
+//   const isAuthenticated = !!token && !!user && !isInitializing;
 //   console.log('AuthContext: isAuthenticated state:', isAuthenticated);
 
 //   const logout = useCallback(() => {
@@ -191,82 +231,104 @@ export const useAuth = () => {
 //     setToken(null);
 //     setUser(null);
 //     removeFromStorage('accessToken');
-//     setIsAuthLoading(false); // Set loading to false after logout
+//     removeFromStorage('user'); // Also remove user object from storage
 //     navigate('/');
 //   }, [navigate]);
 
-//   // Function to fetch user profile
-//   const fetchUserProfile = useCallback(async () => {
+//   useEffect(() => {
+//     console.log('AuthContext: useEffect - token changed or initial load. Current token:', token);
+
+//     // If there's no token, ensure user is null and finish initialization
 //     if (!token) {
 //       setUser(null);
-//       setIsAuthLoading(false); // Not loading if no token
+//       removeFromStorage('user'); // Clean up old user data if token is gone
+//       setIsInitializing(false);
+//       console.log('AuthContext: useEffect - token is null, setting user to null');
 //       return;
 //     }
-//     setIsAuthLoading(true); // Start loading before fetching
-//     try {
-//       console.log('AuthContext: Attempting to fetch user profile...');
-//       // Assuming your backend has an endpoint to get the current user's profile
-//       // and that axiosInstance automatically handles the Authorization header.
-//       const response = await axiosInstance.get<any>('/api/v1/user/me'); // Adjust endpoint as needed (e.g. /api/profile)
-      
-//       if (response.data?.status) {
-//         console.log('AuthContext: User profile fetched successfully:', response.data.user);
-//         setUser(response.data.user); // Set the user state with the fetched data
-//       } else {
-//         console.warn('AuthContext: Failed to fetch user profile - ', response.data?.message || 'Unknown error');
-//         // If API indicates failure, clear token and log out
-//         toast.error(response.data?.message || "Failed to fetch user profile. Please login again.");
-//         logout(); 
-//       }
-//     } catch (error: any) {
-//       console.error('AuthContext: Error fetching user profile:', error);
-//       // If the token is invalid or expired, logout the user
-//       if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-//         toast.error("Session expired or invalid. Please log in again.");
-//         logout();
-//       } else {
-//         // Handle other network errors or server issues.
-//         // For enterprise, consider a more specific error message or retry logic.
-//         toast.error(error.message || "A network error occurred. Please try again.");
-//         logout(); // Log out to ensure a clean state
-//       }
-//     } finally {
-//       setIsAuthLoading(false); // Always stop loading, regardless of success or failure
-//     }
-//   }, [token, logout]); // Dependency on token and logout
 
-//   // Effect to handle initial token check and user profile fetch
-//   useEffect(() => {
-//     console.log('AuthContext: useEffect - token changed:', token);
-//     if (token) {
-//       try {
-//         // Optional: Basic token decoding for logging or pre-checks
-//         const decodedToken: any = jwtDecode(token);
-//         console.log('AuthContext: useEffect - decoded token:', decodedToken);
-//         // Consider adding a check for token expiry here if you want to handle it client-side
-//         // before making the API call. If (decodedToken.exp * 1000 < Date.now()) logout();
-//       } catch (error) {
-//         console.error('AuthContext: useEffect - Error decoding token:', error);
-//         toast.error("Invalid token. Please log in again.");
-//         logout(); // If token is malformed, logout
-//         return;
-//       }
-      
-//       // Fetch user profile when token is present
-//       fetchUserProfile();
-//     } else {
-//       // No token, ensure user is null and loading is false
-//       setUser(null);
-//       setIsAuthLoading(false);
-//       console.log('AuthContext: useEffect - token is null, setting user to null and loading to false');
-//     }
-//   }, [token, logout, fetchUserProfile]); // Add fetchUserProfile to dependencies
+//     // If there's a token but the user object is missing from state/storage,
+//     // or if you want to ensure the user object in state is valid,
+//     // attempt to re-hydrate from storage or decode from token.
+//     if (!user) { // Only attempt to re-hydrate if user is currently null in state
+//         const storedUser = getFromStorage('user');
 
-//   // Inactivity Timer Logic
+//         if (storedUser) {
+//             // Option 1: User object is directly in local storage. Use it.
+//             console.log('AuthContext: useEffect - Hydrating user from local storage:', storedUser);
+//             setUser(storedUser);
+//         } else {
+//             // Option 2: User object is NOT in local storage (e.g., very first load, or localStorage was cleared).
+//             // Fallback to decoding the JWT for essential fields.
+//             // THIS WILL NOT HAVE phoneNumber unless backend puts it in JWT.
+//             console.log('AuthContext: useEffect - User not in storage, decoding from JWT (limited fields)');
+//             try {
+//                 interface DecodedTokenPayload {
+//                     nameid?: string;
+//                     unique_name?: string;
+//                     names?: string;
+//                     company?: string;
+//                     role?: string;
+//                     // Add other claims here IF your backend puts them in the JWT
+//                     phone_number?: string; // If backend adds this to JWT
+//                     nbf?: number;
+//                     exp?: number;
+//                     iat?: number;
+//                 }
+
+//                 const decodedToken = jwtDecode<DecodedTokenPayload>(token);
+//                 console.log('AuthContext: useEffect - decoded token for fallback:', decodedToken);
+
+//                 let firstName = '';
+//                 let lastName = '';
+//                 if (decodedToken.names) {
+//                     const nameParts = decodedToken.names.split(' ');
+//                     firstName = nameParts[0] || '';
+//                     lastName = nameParts.slice(1).join(' ') || '';
+//                 }
+
+//                 setUser({
+//                     id: decodedToken.nameid || '',
+//                     email: decodedToken.unique_name || '',
+//                     firstName: firstName,
+//                     lastName: lastName,
+//                     userRole: decodedToken.role || '',
+//                     company: decodedToken.company || '',
+//                     phoneNumber: decodedToken.phone_number || '', // Will only work if backend adds to JWT
+//                     // Provide default/empty values for other fields not in JWT payload
+//                     claims: [],
+//                     roles: decodedToken.role ? [decodedToken.role] : [],
+//                     isSuspended: false,
+//                     dateTimeCreated: new Date().toISOString(),
+//                     dateTimeUpdated: new Date().toISOString(),
+//                     restrictToState: false,
+//                     transactionState: '',
+//                     emailConfirmed: false,
+//                     passwordHash: '',
+//                     securityStamp: null,
+//                     phoneNumberConfirmed: false,
+//                     twoFactorEnabled: false,
+//                     lockoutEnabled: false,
+//                     lockoutEndDateUtc: null,
+//                     accessFailedCount: 0,
+//                     userName: decodedToken.unique_name || '',
+//                     logins: [],
+//                 } as User);
+//             } catch (error) {
+//                 console.error('AuthContext: useEffect - Error decoding token or hydrating user (fallback):', error);
+//                 logout(); // Logout if token is invalid or decoding fails
+//             }
+//         }
+//     }
+
+//     setIsInitializing(false);
+//   }, [token, user, logout]); // Add 'user' to dependencies to trigger re-hydration if user becomes null
+
 //   const resetInactivityTimer = useCallback(() => {
+//     // ... (rest of your resetInactivityTimer logic - no changes needed here)
 //     const logoutUser = () => {
 //       logout();
-//       toast.info('Your session has expired due to inactivity.'); // Use toast instead of alert
+//       alert('Your session has expired due to inactivity.');
 //     };
 
 //     let inactivityTimeout: NodeJS.Timeout | null = null;
@@ -285,9 +347,9 @@ export const useAuth = () => {
 //     window.addEventListener('mousemove', resetTimer);
 //     window.addEventListener('keydown', resetTimer);
 //     window.addEventListener('scroll', resetTimer);
-//     window.addEventListener('focus', resetTimer); 
+//     window.addEventListener('focus', resetTimer);
 
-//     resetTimer(); // Start the timer immediately
+//     resetTimer();
 
 //     return () => {
 //       window.removeEventListener('mousemove', resetTimer);
@@ -298,52 +360,50 @@ export const useAuth = () => {
 //         clearTimeout(inactivityTimeout);
 //       }
 //     };
-//   }, [logout, sessionTimeout]); // Removed navigate as it's not directly used inside this useCallback
+//   }, [logout, sessionTimeout]);
 
 //   useEffect(() => {
-//     console.log('AuthContext: useEffect - isAuthenticated changed:', isAuthenticated);
-//     // Only start the inactivity timer if authenticated and not currently loading initial auth state
-//     if (isAuthenticated && !isAuthLoading) {
+//     console.log('AuthContext: useEffect - isAuthenticated changed:', isAuthenticated, 'isInitializing:', isInitializing);
+//     if (isAuthenticated && !isInitializing) {
 //       return resetInactivityTimer();
 //     }
-//   }, [isAuthenticated, isAuthLoading, resetInactivityTimer]);
+//   }, [isAuthenticated, resetInactivityTimer, isInitializing]);
 
 //   const login = useCallback((data: LoginResponse, persist: boolean = false) => {
 //     console.log('AuthContext: login function called with data:', data, 'persist:', persist);
 //     setToken(data.token);
-//     setUser(data.user); // Set user from login response
+//     setUser(data.user); // THIS IS CRUCIAL: Set the full user object from the response
+
 //     const storage = persist ? localStorage : sessionStorage;
 //     storage.setItem("accessToken", data.token);
+//     saveToStorage('user', data.user); // <--- SAVE THE FULL USER OBJECT HERE!
+
 //     console.log('AuthContext: login function - token set:', data.token);
 //     console.log('AuthContext: login function - user set:', data.user);
-//     setIsAuthLoading(false); // Ensure loading state is false after successful login
-//     // No navigate here, let the calling component handle navigation
-//   }, []); // Removed navigate from dependencies as it's not used in the function logic
+//     navigate('/dashboard');
+//   }, [navigate]);
 
 //   const updateUser = useCallback((updatedUserData: Partial<User>) => {
 //     console.log('AuthContext: updateUser called with:', updatedUserData);
 //     setUser((prevUser) => {
-//       if (prevUser) {
-//         return { ...prevUser, ...updatedUserData };
-//       }
-//       // This scenario (prevUser being null during an update) implies a state inconsistency.
-//       // Consider whether a full refetch might be more appropriate if prevUser is null.
-//       console.warn("AuthContext: updateUser called when prevUser is null. Data might be incomplete.");
-//       return updatedUserData as User; // Cast as User, assuming updatedUserData is a valid partial.
+//       const newUser = prevUser ? { ...prevUser, ...updatedUserData } : updatedUserData as User;
+//       saveToStorage('user', newUser); // Update user in storage too
+//       return newUser;
 //     });
-//     // Note: The console.log here might show the state before the update fully propagates
-//     // console.log('AuthContext: updateUser - user state updated:', { ...user, ...updatedUserData });
-//   }, []); // Empty dependency array for functional update of state
+//   }, []);
 
 //   const value: AuthContextType = {
 //     token,
 //     isAuthenticated,
 //     user,
-//     isAuthLoading, // Provide the loading state
 //     login,
 //     logout,
 //     updateUser,
 //   };
+
+//   if (isInitializing) {
+//     return <div>Loading authentication...</div>;
+//   }
 
 //   return (
 //     <AuthContext.Provider value={value}>

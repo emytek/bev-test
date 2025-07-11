@@ -203,7 +203,8 @@ import { NewModal } from '../ui/modal/ConfirmationModal';
 import Label from '../form/Label';
 import Input from '../form/input/InputField';
 import Button from '../ui/button/Button';
-import { Loader } from '../ui/loader/Loader';
+import Loader from '../ui/loader/Loader';
+
 
 // Define specific props for UserInfoCard's edit modal
 interface UserInfoCardEditModalProps {
@@ -280,7 +281,7 @@ const UserInfoCardEditModal: React.FC<UserInfoCardEditModalProps> = ({
 
   return (
     <NewModal isOpen={isOpen} onClose={onClose} >
-      <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
+      <div className="no-scrollbar relative w-full max-w-[700px] rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
         <div className="px-2 pr-14">
           <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
             Edit Personal Information
@@ -290,7 +291,7 @@ const UserInfoCardEditModal: React.FC<UserInfoCardEditModalProps> = ({
           </p>
         </div>
         <form className="flex flex-col" onSubmit={handleSubmit(onSubmit)}>
-          <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
+          <div className="custom-scrollbar overflow-y-auto px-2 pb-3">
             <div>
               <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                 <div className="col-span-2 lg:col-span-1">
@@ -326,7 +327,7 @@ const UserInfoCardEditModal: React.FC<UserInfoCardEditModalProps> = ({
                   />
                 </div>
 
-                <div className="col-span-2 lg:col-span-1">
+                {/* <div className="col-span-2 lg:col-span-1">
                   <Label htmlFor="phoneNumber">Phone</Label>
                   <Input
                     type="text"
@@ -335,9 +336,9 @@ const UserInfoCardEditModal: React.FC<UserInfoCardEditModalProps> = ({
                     error={!!errors.phoneNumber}
                     hint={errors.phoneNumber?.message}
                   />
-                </div>
+                </div> */}
 
-                <div className="col-span-2">
+                <div className="col-span-2 lg:col-span-1">
                   <Label htmlFor="userRole">Role</Label>
                   <Input
                     type="text"
@@ -350,7 +351,7 @@ const UserInfoCardEditModal: React.FC<UserInfoCardEditModalProps> = ({
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
+          <div className="flex items-center gap-3 px-2 mt-4 lg:justify-end">
             <Button size="sm" variant="outline" onClick={onClose} disabled={loading}>
               Close
             </Button>
@@ -424,14 +425,14 @@ export default function UserInfoCard({ user: propUser, onUserUpdated }: UserInfo
               </p>
             </div>
 
-            <div>
+            {/* <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
                 Phone
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
                 {propUser?.phoneNumber}
               </p>
-            </div>
+            </div> */}
 
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">

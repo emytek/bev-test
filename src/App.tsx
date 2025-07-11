@@ -12,7 +12,6 @@ import Avatars from "./pages/UiElements/Avatars";
 import Buttons from "./pages/UiElements/Buttons";
 import LineChart from "./pages/Charts/LineChart";
 import BarChart from "./pages/Charts/BarChart";
-import Calendar from "./pages/Calendar";
 import BasicTables from "./pages/Tables/BasicTables";
 import FormElements from "./pages/Forms/FormElements";
 import Blank from "./pages/Blank";
@@ -28,197 +27,208 @@ import ForgotPassword from "./components/auth/ForgetPassword";
 import ResetPassword from "./components/auth/ResetPassword";
 // import Barcode from 'react-barcode'
 import RegisterUser from "./components/auth/Onboarding/CreateUser";
-import Production from "./pages/Production";
 // import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import ProductionOrderPage from "./components/operations/ProductionMetrics/process-production/ProductionOrder";
 import { OrderNumberProvider } from "./context/OrderNoContext";
 import PrintDisplay from "./components/operations/ProductionMetrics/print/PrintDisplay";
-import ProductionOrderList from "./components/operations/ProductionMetrics/reports/ProductionOrderList";
 import ChangePasswordForm from "./components/settings/ChangePassword";
 import DisplaySettings from "./components/settings/ThemeDisplay";
 import ScannerPage from "./pages/ScanBot/ScannerPage";
+import { WarehousePage } from "./components/operations/WareHouseDispatch/Warehouse";
+import { StoresPage } from "./components/operations/StoresOperation/Stores";
+import { SalesPage } from "./components/operations/Sales/SalesPage";
+import ProductionPage from "./pages/Production/ProductionPage";
+import FinishedOrderDetailsPage from "./components/operations/ProductionMetrics/FinishedProduction";
+import ProductionOrderReports from "./components/operations/ProductionMetrics/reports/ProductionOrderList";
+import ProductionOrderDetailsPage from "./components/operations/ProductionMetrics/reports/DetailsPage";
+import ApprovedProductionOrderDetailsPage from "./components/operations/ProductionMetrics/ApprovedProduction";
+import DeliveryNote from "./components/operations/delivery";
+import PickSlipContent from "./components/operations/pickslip/PickslipPage";
+
+// Define types for print targets
+type PrintTarget = 'none' | 'deliveryCopy' | 'pickSlip' | 'productionReport';
 
 export default function App() {
-  // const { promptVisible, showInstallPrompt } = useInstallPrompt();
+  // States for production report print
   const [stockIdToPrint, setStockIdToPrint] = useState<string | null>(null);
-  const [completedQuantityToPrint, setCompletedQuantityToPrint] = useState<
-    number | null
-  >(null);
-  const [productDescriptionToPrint, setProductDescriptionToPrint] = useState<
-    string | null
-  >(null);
+  const [completedQuantityToPrint, setCompletedQuantityToPrint] = useState<number | null>(null);
+  const [productDescriptionToPrint, setProductDescriptionToPrint] = useState<string | null>(null);
+  const [orderNo, setOrderNo] = useState<string | null>(null);
+
+  // Global state to control which content is currently being prepared for print
+  const [currentPrintTarget, setCurrentPrintTarget] = useState<PrintTarget>('none');
 
   useLocalNotification();
   usePushNotifications();
 
-  const handlePrint = (
+  // Handle print for Production Report (triggered from ProductionOrderPage)
+  const handlePrintProductionReport = (
     stockId: string,
     completedQuantity: number,
-    productDescription: string | null
+    productDescription: string | null,
+    orderNumber: string | null
   ) => {
     setStockIdToPrint(stockId);
     setCompletedQuantityToPrint(completedQuantity);
     setProductDescriptionToPrint(productDescription);
+    setOrderNo(orderNumber);
+    setCurrentPrintTarget('productionReport'); // Set target to productionReport
     setTimeout(() => {
       window.print();
+      setCurrentPrintTarget('none'); // Reset after print dialog
     }, 100);
   };
 
+  // Handle print for Delivery Copy (triggered by a dedicated button in App)
+  const handlePrintDeliveryCopy = () => {
+    setCurrentPrintTarget('deliveryCopy'); // Set target to deliveryCopy
+    setTimeout(() => {
+      window.print();
+      setCurrentPrintTarget('none'); // Reset after print dialog
+    }, 50);
+  };
+
+  // Handle print for Pick Slip Copy
+  const handlePrintPickSlipCopy = () => {
+    setCurrentPrintTarget('pickSlip'); // Set target to pickSlip
+    setTimeout(() => {
+      window.print();
+      setCurrentPrintTarget('none'); // Reset after print dialog
+    }, 50);
+  };
+
   return (
-    <>
-      <div className="print:hidden">
-        <Router>
-          <AuthProvider>
-            <OrderNumberProvider>
-              <ScrollToTop />
-              <Notifications />
-              <Routes>
-                {/* Dashboard Layout */}
-                <Route element={<AppLayout />}>
-                  <Route
-                    path="/dashboard"
-                    element={
-                      <ProtectedRoute>
-                        <Home />
-                      </ProtectedRoute>
-                    }
-                  />
-                  {/* Production */}
-                  <Route
-                    index
-                    path="/production"
-                    element={
-                      <ProtectedRoute>
-                        <Production />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    index
-                    path="/production-details"
-                    element={
-                      <ProtectedRoute>
-                        <ProductionOrderPage
-                          setStockIdToPrint={setStockIdToPrint}
-                          onPrint={handlePrint}
-                        />
-                      </ProtectedRoute>
-                    }
-                  />
+    <Router basename="/">
+      {/* Main App UI - conditionally hidden when any print job is active */}
+      {/* This div contains all your routes and regular application content */}
+      <div className={currentPrintTarget !== 'none' ? 'print:hidden' : ''}>
+        <AuthProvider>
+          <OrderNumberProvider>
+            <ScrollToTop />
+            <Notifications />
+            <Routes>
+              {/* Dashboard Layout */}
+              <Route element={<AppLayout />}>
+                <Route path="/dashboard" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+                <Route index path="/production" element={<ProtectedRoute><ProductionPage /></ProtectedRoute>} />
+                <Route path="/finished-orders" element={<ProtectedRoute><FinishedOrderDetailsPage /></ProtectedRoute>} />
+                <Route index path="/production-details" element={<ProtectedRoute><ProductionOrderPage setStockIdToPrint={setStockIdToPrint} onPrint={handlePrintProductionReport} /></ProtectedRoute>} />
+                <Route index path="/sales-details" element={<ProtectedRoute><SalesPage /></ProtectedRoute>} />
+                <Route path="/production-reports" element={<ProtectedRoute><ProductionOrderReports /></ProtectedRoute>} />
+                <Route path="/production-orders/:productionHeaderID/details" element={<ProtectedRoute><ProductionOrderDetailsPage /></ProtectedRoute>} />
+                <Route path="/approved-production-order-details/:sapProductionOrderID" element={<ProtectedRoute><ApprovedProductionOrderDetailsPage /></ProtectedRoute>} />
 
-                  <Route
-                    index
-                    path="/reports"
-                    element={
-                      <ProtectedRoute>
-                        <ProductionOrderList />
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  {/* Settings */}
-                  <Route
-                    path="/change-password"
-                    element={<ChangePasswordForm />}
-                  />
-                  <Route path="/theme" element={<DisplaySettings />} />
-
-                  {/* Scanner */}
-                  <Route path="/scanner" element={<ScannerPage />} />
-
-                  <Route path="/warehouse" element={<UserProfiles />} />
-                  <Route path="/stores" element={<Calendar />} />
-                  <Route path="/blank" element={<Blank />} />
-
-                  {/* Forms */}
-                  <Route path="/form-elements" element={<FormElements />} />
-
-                  {/* Tables */}
-                  <Route path="/basic-tables" element={<BasicTables />} />
-
-                  {/* Ui Elements */}
-                  <Route path="/alerts" element={<Alerts />} />
-                  <Route path="/avatars" element={<Avatars />} />
-                  <Route path="/badge" element={<Badges />} />
-                  <Route path="/buttons" element={<Buttons />} />
-                  <Route path="/images" element={<Images />} />
-                  <Route path="/videos" element={<Videos />} />
-
-                  {/* Charts */}
-                  <Route path="/line-chart" element={<LineChart />} />
-                  <Route path="/bar-chart" element={<BarChart />} />
-
-                  {/* User management */}
-                  <Route path="/user-list" element={<UserList />} />
-                  <Route path="/profile" element={<UserProfiles />} />
-                </Route>
-
-                {/* Auth Layout */}
-                <Route path="/" element={<SignIn />} />
-                <Route path="/signup" element={<SignUp />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
+                {/* Settings */}
+                <Route path="/change-password" element={<ChangePasswordForm />} />
+                <Route path="/theme" element={<DisplaySettings />} />
 
                 {/* Onboarding */}
                 <Route path="/create-user" element={<RegisterUser />} />
 
-                {/* Fallback Route */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </OrderNumberProvider>
-          </AuthProvider>
-        </Router>
-        {/* {promptVisible && (
-        <button onClick={showInstallPrompt} className="p-4">
-          Install PWA
-        </button>
-      )} */}
+                {/* Scanner */}
+                <Route path="/scanner" element={<ScannerPage />} />
 
-        {/* <div className="p-4 flex justify-center items-center">
-   
+                {/* Delivery Copy and Pick Slip print buttons/viewer */}
+                <Route path="/documents-viewer" element={
+                  <ProtectedRoute>
+                    <div className="flex flex-col items-center p-4 gap-6">
+                      <h2 className="text-2xl font-bold mb-4">Document Viewer</h2>
+                      <button
+                        onClick={handlePrintDeliveryCopy}
+                        className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+                        aria-label="Print Delivery Note"
+                      >
+                        Print Delivery Note
+                      </button>
 
-      <BarcodeGenerator/>
-      <h1>Testing...</h1>
-      <input type="text" value={text} onChange={generateBarCode} />
-      
-      {!scannedCode ? (
-        <BarcodeScanner onScan={setScannedCode} onError={(err) => console.error(err)} />
-      ) : (
-        <div className="p-4 bg-green-200 rounded-md">
-          <p>Scanned Code: {scannedCode}</p>
-          <button
-            onClick={() => setScannedCode(null)}
-            className="mt-2 px-4 py-2 bg-blue-600 text-white rounded"
-          >
-            Scan Again
-          </button>
-        </div>
-      )}
-    </div> */}
+                      <button
+                        onClick={handlePrintPickSlipCopy}
+                        className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+                        aria-label="Print Pick Slip"
+                      >
+                        Print Pick Slip
+                      </button>
+                      {/* Optionally, show previews here if desired */}
+                    </div>
+                  </ProtectedRoute>
+                } />
+
+
+                <Route path="/warehouse" element={<WarehousePage />} />
+                <Route path="/sales" element={<SalesPage />} />
+                <Route path="/stores" element={<StoresPage />} />
+                <Route path="/blank" element={<Blank />} />
+
+                {/* Forms */}
+                <Route path="/form-elements" element={<FormElements />} />
+
+                {/* Tables */}
+                <Route path="/basic-tables" element={<BasicTables />} />
+
+                {/* Ui Elements */}
+                <Route path="/alerts" element={<Alerts />} />
+                <Route path="/avatars" element={<Avatars />} />
+                <Route path="/badge" element={<Badges />} />
+                <Route path="/buttons" element={<Buttons />} />
+                <Route path="/images" element={<Images />} />
+                <Route path="/videos" element={<Videos />} />
+
+                {/* Charts */}
+                <Route path="/line-chart" element={<LineChart />} />
+                <Route path="/bar-chart" element={<BarChart />} />
+
+                {/* User management */}
+                <Route path="/user-list" element={<UserList />} />
+                <Route path="/profile" element={<UserProfiles />} />
+              </Route>
+
+              {/* Auth Layout */}
+              <Route path="/" element={<SignIn />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+
+              <Route path="/delivery" element={<DeliveryNote />} />
+
+              {/* Fallback Route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </OrderNumberProvider>
+        </AuthProvider>
       </div>
 
-      {/* <div
-        id="print-section"
-        className="print:block hidden print:!block print:absolute print:top-0 print:left-0 print:bg-white print:text-black w-full p-4 sm:p-6 md:p-8 max-w-full sm:max-w-3xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto print:w-full print:h-full print:max-w-full print:mx-0"
-      >
-        <PrintDisplay
-          stockIdToPrint={stockIdToPrint}
-          completedQuantityToPrint={completedQuantityToPrint}
-          productDescriptionToPrint={productDescriptionToPrint}
-        />
-      </div> */}
+      {/* Production Report Print Section - conditionally rendered and styled */}
       <div
         id="print-section"
-        className="print:!block hidden print:absolute print:top-0 print:left-0 print:bg-white print:text-black w-full p-4 sm:p-6 md:p-8 max-w-full sm:max-w-3xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto print:w-full print:h-full print:max-w-full print:mx-0"
+        className={`print-area ${currentPrintTarget === 'productionReport' ? 'is-active-print-target' : ''}`}
       >
         <PrintDisplay
           stockIdToPrint={stockIdToPrint}
           completedQuantityToPrint={completedQuantityToPrint}
           productDescriptionToPrint={productDescriptionToPrint}
+          orderNo={orderNo}
         />
       </div>
-    </>
+
+      {/* Delivery Copy Print Section - conditionally rendered and styled */}
+      <div
+        id="printable-delivery-copy-section"
+        className={`print-area ${currentPrintTarget === 'deliveryCopy' ? 'is-active-print-target' : ''}`}
+      >
+        <DeliveryNote />
+      </div>
+
+      {/* Pick Slip Print Section - conditionally rendered and styled */}
+      <div
+        id="printable-pick-slip-section"
+        className={`print-area ${currentPrintTarget === 'pickSlip' ? 'is-active-print-target' : ''}`}
+      >
+        {/* <PickSlipPrintableContent /> */}
+        <PickSlipContent />
+      </div>
+    </Router>
   );
 }
+

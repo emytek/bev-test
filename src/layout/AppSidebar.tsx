@@ -15,11 +15,12 @@ import {
 import { 
   LuFactory, LuPackage, LuTruck, 
   LuSettings, LuUsers, 
-  LuDatabase
+  LuTrendingUp
 } from "react-icons/lu";
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
 import { BiBarcodeReader } from "react-icons/bi";
+import { useAuth } from "../hooks/useAuth";
 
 type NavItem = {
   name: string;
@@ -28,91 +29,11 @@ type NavItem = {
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
 
-const navItems: NavItem[] = [
-  {
-    icon: <GridIcon />,
-    name: "Dashboard",
-    subItems: [{ name: "Overview", path: "/dashboard", pro: false }],
-  },
-  {
-    icon: <LuFactory />,
-    name: "Production Management",
-    subItems: [{ name: "Manufacturing Insights", path: "/production", pro: false },
-      { name: "Process Production", path: "/production-details", pro: false },
-      { name: "Reports", path: "/reports", pro: false },
-    ],
-  },
-  {
-    icon: <LuPackage />,
-    name: "Stores Operation",
-    path: "/stores",
-  },
-  {
-    icon: <LuTruck />,
-    name: "WareHouse Dispatch",
-    path: "/warehouse",
-  },
-  {
-    name: "Inventory Overview",
-    icon: <LuDatabase />,
-    subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
-  },
-  {
-    name: "Barcode Scanner",
-    icon: <BiBarcodeReader />,
-    subItems: [{ name: "Scan code", path: "/scanner", pro: false }],
-  }
-];
-
-const othersItems: NavItem[] = [
-  // {
-  //   icon: <PieChartIcon />,
-  //   name: "Charts",
-  //   subItems: [
-  //     { name: "Line Chart", path: "/line-chart", pro: false },
-  //     { name: "Bar Chart", path: "/bar-chart", pro: false },
-  //   ],
-  // },
-  // {
-  //   icon: <BoxCubeIcon />,
-  //   name: "UI Elements",
-  //   subItems: [
-  //     { name: "Alerts", path: "/alerts", pro: false },
-  //     { name: "Avatar", path: "/avatars", pro: false },
-  //     { name: "Badge", path: "/badge", pro: false },
-  //     { name: "Buttons", path: "/buttons", pro: false },
-  //     { name: "Images", path: "/images", pro: false },
-  //     { name: "Videos", path: "/videos", pro: false },
-  //   ],
-  // },
-  // {
-  //   icon: <PlugInIcon />,
-  //   name: "Authentication",
-  //   subItems: [
-  //     { name: "Sign In", path: "/signin", pro: false },
-  //     { name: "Sign Up", path: "/signup", pro: false },
-  //   ],
-  // },
-  {
-    name: "Settings & Configuration",
-    icon: <LuSettings />,
-    subItems: [
-      { name: "Change Password", path: "/change-password", pro: false },
-      { name: "Theme Display", path: "/theme", pro: false }
-    ],
-  },
-  {
-    name: "User Directory",
-    icon: <LuUsers />,
-    subItems: [
-      { name: "Manage Users", path: "/user-list", pro: false },
-    ],
-  },
-];
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
+  const { user } = useAuth();
 
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "others";
@@ -123,11 +44,107 @@ const AppSidebar: React.FC = () => {
   );
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
+  const isAdmin = user?.userRole === "Admin";
+
   // const isActive = (path: string) => location.pathname === path;
   const isActive = useCallback(
     (path: string) => location.pathname === path,
     [location.pathname]
   );
+
+  const navItems: NavItem[] = [
+    {
+      icon: <GridIcon />,
+      name: "Dashboard",
+      subItems: [{ name: "Overview", path: "/dashboard", pro: false }],
+    },
+    {
+      icon: <LuFactory />,
+      name: "Production Management",
+      subItems: [{ name: "Manufacturing Insights", path: "/production", pro: false },
+        { name: "Process Production", path: "/production-details", pro: false },
+      ],
+    },
+    {
+      icon: <LuTrendingUp />,
+      name: "Sales",
+      subItems: [{ name: "Sales Overview", path: "/sales", pro: false },
+        { name: "Process Sales", path: "/sales-details", pro: false },
+      ],
+    },
+    {
+      icon: <LuPackage />,
+      name: "Stores Operation",
+      path: "/stores",
+    },
+    {
+      icon: <LuTruck />,
+      name: "WareHouse Dispatch",
+      path: "/warehouse",
+    },
+    // {
+    //   name: "Inventory Overview",
+    //   icon: <LuDatabase />,
+    //   subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
+    // },
+    {
+      name: "Barcode Scanner",
+      icon: <BiBarcodeReader />,
+      subItems: [{ name: "Scan code", path: "/scanner", pro: false }],
+    }
+  ];
+  
+  const othersItems: NavItem[] = [
+    // {
+    //   icon: <PieChartIcon />,
+    //   name: "Charts",
+    //   subItems: [
+    //     { name: "Line Chart", path: "/line-chart", pro: false },
+    //     { name: "Bar Chart", path: "/bar-chart", pro: false },
+    //   ],
+    // },
+    // {
+    //   icon: <BoxCubeIcon />,
+    //   name: "UI Elements",
+    //   subItems: [
+    //     { name: "Alerts", path: "/alerts", pro: false },
+    //     { name: "Avatar", path: "/avatars", pro: false },
+    //     { name: "Badge", path: "/badge", pro: false },
+    //     { name: "Buttons", path: "/buttons", pro: false },
+    //     { name: "Images", path: "/images", pro: false },
+    //     { name: "Videos", path: "/videos", pro: false },
+    //   ],
+    // },
+    // {
+    //   icon: <PlugInIcon />,
+    //   name: "Authentication",
+    //   subItems: [
+    //     { name: "Sign In", path: "/signin", pro: false },
+    //     { name: "Sign Up", path: "/signup", pro: false },
+    //   ],
+    // },
+    {
+      name: "Settings & Configuration",
+      icon: <LuSettings />,
+      subItems: [
+        { name: "Change Password", path: "/change-password", pro: false },
+        { name: "Theme Display", path: "/theme", pro: false }
+      ],
+    },
+    // Conditionally include "User Directory" based on isAdmin
+    ...(isAdmin
+      ? [
+          {
+            name: "User Directory",
+            icon: <LuUsers />,
+            subItems: [
+              { name: "Manage Users", path: "/user-list", pro: false },
+              { name: "Create User", path: "/create-user", pro: false },
+            ],
+          },
+        ]
+      : []), // If not admin, add an empty array, which adds nothing
+  ];
 
   useEffect(() => {
     let submenuMatched = false;
