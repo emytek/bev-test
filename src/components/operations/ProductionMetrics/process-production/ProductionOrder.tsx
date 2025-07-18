@@ -30,7 +30,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import axiosInstance from "../../../../api/axiosInstance";
 import { FiPlus } from "react-icons/fi";
 import { useOrderNumber } from "../../../../hooks/useOrderNumber";
-import { useUserAuth } from "../../../../context/AuthContext";
+import { useUserAuth } from "../../../../context/auth/AuthContext";
 import {
   ConfirmationApprovalModal,
   ConfirmationFinishModal,
@@ -61,7 +61,7 @@ import {
   ProductionDetail,
   ProductionOrder,
   ProductionOrderProps,
-} from "../../../../types/productionTypes";
+} from "../../../../types/production/productionTypes";
 
 // Context for SAP data
 interface SAPDataContextType {

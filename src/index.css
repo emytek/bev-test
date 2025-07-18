@@ -5,6 +5,62 @@ layer(base);
 
 @custom-variant dark (&:is(.dark *));
 
+:root {
+  --sap-ui-background: #f0f3f6; /* Light gray background */
+  --sap-ui-content-background: #ffffff; /* White card/content background */
+  --sap-ui-border-color: #d1d5db; /* Light gray border */
+  --sap-ui-text-color: #333333; /* Dark gray text */
+  --sap-ui-accent-color: #0a6ed1; /* SAP Blue for primary actions/highlights */
+  --sap-ui-success-color: #107e3e; /* Green for success */
+  --sap-ui-error-color: #bb0000; /* Red for errors */
+  --sap-ui-warning-color: #e27d00; /* Orange for warnings */
+}
+
+/* Dark mode considerations (example) */
+.dark body {
+  background-color: #1a202c; /* Dark background */
+  color: #e2e8f0; /* Light text in dark mode */
+}
+
+.btn-sap-primary {
+  background-color: var(--sap-ui-accent-color);
+  color: white;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.btn-sap-primary:hover {
+  background-color: darken(var(--sap-ui-accent-color), 5%); /* Requires postcss-color-function or similar */
+}
+
+/* Input field styles - already handled by Input.tsx and Select.tsx */
+
+/* DatePicker custom styles (example, more granular control needed) */
+.react-datepicker {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.react-datepicker__header {
+  background-color: var(--sap-ui-background);
+  border-bottom: 1px solid var(--sap-ui-border-color);
+}
+
+.react-datepicker__day--selected {
+  background-color: var(--sap-ui-accent-color) !important;
+  color: white !important;
+}
+
+.react-datepicker__day--sap-byd:hover {
+  background-color: var(--sap-ui-accent-color);
+  color: white;
+  border-radius: 50%;
+}
+
 @theme {
   --font-*: initial;
   --font-outfit: Outfit, sans-serif;

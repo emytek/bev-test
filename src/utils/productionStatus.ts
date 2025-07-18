@@ -1,4 +1,4 @@
-import { ProductionStage } from "../types/prodStage";
+import { ProductionStage } from "../types/production/prodStage";
 
 // Utility function to determine status (updated)
 export const getProductionOrderStatus = (

@@ -55,7 +55,7 @@ import UserInfoCard from "../components/UserProfile/UserInfoCard";
 import PageMeta from "../components/common/PageMeta";
 import UserMetaCard from "../components/UserProfile/UserMetaCard";
 import { useState } from "react";
-import { useUserAuth } from "../context/AuthContext";
+import { useUserAuth } from "../context/auth/AuthContext";
 import { User } from "../types/authTypes";
 
 export default function UserProfiles() {

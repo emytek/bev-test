@@ -1,4 +1,3 @@
-// import { useRef, useEffect } from "react";
 
 interface ModalProps {
   isOpen: boolean;
@@ -7,8 +6,8 @@ interface ModalProps {
   children?: React.ReactNode;
   showCloseButton?: boolean;
   isFullscreen?: boolean;
-  title?: string; // Add title prop
-  message?: string; // Add message prop
+  title?: string;
+  message?: string; 
 }
 
 

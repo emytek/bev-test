@@ -70,6 +70,7 @@ const AppSidebar: React.FC = () => {
       name: "Sales",
       subItems: [{ name: "Sales Overview", path: "/sales", pro: false },
         { name: "Process Sales", path: "/sales-details", pro: false },
+        { name: "Outbound Logistics", path: "/sales-order", pro: false },
       ],
     },
     {

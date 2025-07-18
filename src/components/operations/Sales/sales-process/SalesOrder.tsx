@@ -1,4 +1,4 @@
-import {
+import React, {
   useState,
   useEffect,
   useCallback,
@@ -30,7 +30,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import axiosInstance from "../../../../api/axiosInstance";
 import { FiPlus } from "react-icons/fi";
 import { useOrderNumber } from "../../../../hooks/useOrderNumber";
-import { useUserAuth } from "../../../../context/AuthContext";
+import { useUserAuth } from "../../../../context/auth/AuthContext";
 import {
   ConfirmationApprovalModal,
   ConfirmationFinishModal,
@@ -55,7 +55,7 @@ import { getSalesOrderStatus } from "../../../../utils/productionStatus";
 import DynamicSalesButton from "../../../ui/button/DynamicBtn";
 import { isValid } from "date-fns";
 import { MdOutlineCancel } from "react-icons/md";
-import { SalesDetail, SalesOrder } from "../../../../types/salesTypes";
+import { SalesDetail, SalesOrder } from "../../../../types/sales/salesTypes";
 
 // Context for SAP data
 interface SAPDataContextType {
@@ -71,14 +71,6 @@ enum SalesStage {
   NONE = "NONE",
   CANCELLED = "CANCELLED",
 }
-
-// const machineOptions = [
-//   { value: "", label: "Select Machine" },
-//   { value: "Machine 1", label: "Machine 1" },
-//   { value: "Machine 2", label: "Machine 2" },
-//   { value: "Machine 3", label: "Machine 3" },
-//   { value: "Machine 4", label: "Machine 4" },
-// ];
 
 const fieldBaseClass =
   "w-full px-4 py-2 rounded-md border focus:outline-none focus:ring-2 transition text-sm md:text-base";
@@ -108,9 +100,6 @@ const SalesOrderPage = () => {
   const [SalesOrderDetails, setSalesOrderDetails] = useState<
     SalesOrder[] | null
   >(null);
-  // const [productDescription, setProductDescription] = useState<string | null>(
-  //   null
-  // );
   // --- New state for input validation visibility ---
   const [_hasInteractedWithQuantity, setHasInteractedWithQuantity] =
     useState<boolean>(false);
@@ -129,7 +118,6 @@ const SalesOrderPage = () => {
   const [_restricted, setRestricted] = useState("");
   const [_shift, setShift] = useState("M");
   // Initial states at the top of your component
-  //const [_lastSuccessfulShift, setLastSuccessfulShift] = useState<string>(""); // Stores the last selected value
   // No need for hasInteractedWithShift directly for this logic, as `lastSuccessfulShift` will implicitly track interaction.
   const [editingIndex, setEditingIndex] = useState<number | null>(null); // Track editing detail
   const { orderNumber, setOrderNumber } = useOrderNumber();
@@ -164,9 +152,6 @@ const SalesOrderPage = () => {
 
   // --- Key Quantities from SAP/Middleware Response ---
   const [SalesHeaderIDData, _setSalesHeaderIDData] = useState<string>("");
-  // const [sapPlannedQuantity, setSapPlannedQuantity] = useState<number>(0);
-  // const [initialCompletedQuantity, setInitialCompletedQuantity] =
-  //   useState<number>(0);
   const [_uomData, _setUomData] = useState<number>(0);
   const [isFinished, setIsFinished] = useState<boolean>(false);
   const [isApproved, setIsApproved] = useState<boolean>(false);
@@ -186,8 +171,6 @@ const SalesOrderPage = () => {
   const [isPostInstant, setIsPostInstant] = useState(false);
 
   const [showQuantityModal, setShowQuantityModal] = useState(false);
-  // const [currentTotalCompletedQuantity, setCurrentTotalCompletedQuantity] =
-  //   useState<number>(0);
 
   // ... other states
   const [isSalesOrderSynced, setIsSalesOrderSynced] = useState<boolean>(false);
@@ -198,9 +181,6 @@ const SalesOrderPage = () => {
     null
   );
   const [originalMachine, setOriginalMachine] = useState<string>("");
-  const [_convertedPlannedQuantity, _setConvertedPlannedQuantity] =
-    useState<number>(0);
-
   const [_sapSalesOrderID, setSAPSalesOrderID] = useState<string>("");
   const [_sapSalesOrderObjectID, setSAPSalesOrderObjectID] =
     useState<string>("");
@@ -210,9 +190,6 @@ const SalesOrderPage = () => {
   const [isCanceled, setIsCanceled] = useState<boolean>(false);
   const [totalAmount, setTotalAmount] = useState<number>(0);
   //   sales details
-  // const [salesDetailID, setSalesDetailID] = useState<string>("");
-  // const [salesHeaderID, setSalesHeaderID] = useState<string>("");
-  // const [lineno, setLineNo] = useState<string>("");
   const [productID, setProductID] = useState<string>("");
   const [_identifiedStockID, setIdentifiedStockID] = useState<string>("");
   const [quantitySales, setQuantitySales] = useState<number | null>(null);
@@ -1185,15 +1162,6 @@ const SalesOrderPage = () => {
     setIsDeleteModalOpen(false); // Close modal after action
   };
 
-  // const handleClick = (
-  //   stockId: string,
-  //   completedQuantity: number,
-  //   productDescription: string | null,
-  //   orderNumber: string | null
-  // ) => {
-  //   onPrint(stockId, completedQuantity, productDescription, orderNumber);
-  // };
-
   // === STAGE DETECTION ===
   const currentStage = useMemo<"finish" | "approve" | "post" | null>(() => {
     if (!isFinishedStage && !isFinished) return "finish";
@@ -1985,7 +1953,7 @@ const SalesOrderPage = () => {
                 exit={{ opacity: 0, scale: 0.8 }}
                 transition={{ duration: 0.2 }}
                 className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl w-full max-w-md space-y-6 relative"
-                onClick={(e: any) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
               >
                 <button
                   onClick={() => setIsModalOpen(false)}

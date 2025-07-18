@@ -1,5 +1,5 @@
 // components/production/analytics/ProductionAnalyticsPage.tsx
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { FiBarChart2, FiCalendar, FiFilter, FiTrendingUp, FiCheckCircle, FiClock, FiPackage } from 'react-icons/fi';
 import { DateRangePicker } from 'react-date-range'; // Example: using react-date-range
 import 'react-date-range/dist/styles.css'; // main style file

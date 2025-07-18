@@ -5,25 +5,13 @@ import {
     FaArrowDown,
   } from "react-icons/fa"; 
   import Badge from "../ui/badge/Badge";
-  import { motion, type Variants } from "framer-motion";
-  import { easeOut } from "framer-motion";
+  import { motion } from "framer-motion";
   
-  // const cardVariants = {
-  //   hidden: { opacity: 0, y: 30 },
-  //   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
-  // };
-  const cardVariants: Variants = { // Explicitly type cardVariants as Variants
+  const cardVariants = {
     hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: easeOut, // <-- Use the imported easeOut function here
-      },
-    },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
   };
-   
+  
   interface Props {}
   
   const WarehouseAndSalesMetrics: React.FC<Props> = () => {

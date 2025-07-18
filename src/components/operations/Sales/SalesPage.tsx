@@ -1,5 +1,4 @@
-import React from 'react';
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 // Importing a diverse set of icons suitable for a sales dashboard
 import {
     FiBriefcase, FiUsers, FiTrendingUp, FiFileText, FiDollarSign, FiTarget,

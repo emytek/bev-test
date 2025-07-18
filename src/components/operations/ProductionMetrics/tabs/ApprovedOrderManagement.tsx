@@ -369,7 +369,6 @@ const ApprovedOrdersManagementTab: React.FC = () => {
     return Array.from(ids).sort();
   }, [approvedOrders]);
 
-
   // --- Combined Filtering Logic (Search Term + Filter Sidebar Filters) ---
   const applyAllFilters = useMemo(() => {
     return approvedOrders.filter(order => {

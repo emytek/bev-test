@@ -63,23 +63,16 @@ const productionTabs: Tab[] = [
     icon: FiCheckSquare,
     content: () => <PostedOrdersManagementTab />,
   },
-  // Add more tabs here to test responsiveness if needed
-  // { id: 'settings', label: 'Production Settings', icon: FiSettings, content: () => <div>Settings Content</div> },
-  // { id: 'history', label: 'Order History', icon: FiArchive, content: () => <div>History Content</div> },
 ];
 
 const ProductionPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>(productionTabs[0].id);
 
-  // Ensure ActiveTabContent is a valid React component.
-  // If content is a simple JSX element or string, it won't be callable like a component.
-  // If content is always a component, this is fine. If it can be simple JSX, adjust rendering.
   const ActiveTabComponent =
     productionTabs.find((tab) => tab.id === activeTab)?.content ||
     (() => <div className="p-4">Select a tab or content not found.</div>);
 
   return (
-    // Use responsive padding for the main container
     <div className="flex-1 p-4 sm:p-6 min-h-screen">
       <header className="mb-4 sm:mb-6 flex items-center gap-2">
         <MdFactory className="text-2xl text-gray-700 dark:text-gray-300" />
@@ -90,25 +83,20 @@ const ProductionPage: React.FC = () => {
 
       {/* Horizontal Navigation Tabs */}
       <nav className="mb-4 sm:mb-6">
-        {/* Enable horizontal scrolling for the tab container on smaller screens */}
-        {/* `scrollbar-hide` can be used if you want to hide the scrollbar visually, but ensure usability */}
-        {/* For custom scrollbars, Tailwind plugins like `tailwind-scrollbar` can be used */}
         <div className="flex border-b border-gray-300 overflow-x-auto whitespace-nowrap">
           {productionTabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              // Responsive padding for tabs and ensure they don't shrink
               className={`flex-shrink-0 flex items-center px-4 py-3 sm:px-6 text-sm font-medium transition-colors duration-150 ease-in-out
                 ${
                   activeTab === tab.id
                     ? "border-b-2 border-blue-600 text-blue-600"
                     : "text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                } focus:outline-none -mb-px dark:text-gray-200`} // -mb-px aligns the active tab's border with the container's border
+                } focus:outline-none -mb-px dark:text-gray-200`}
             >
               <tab.icon className="mr-2 h-5 w-5 flex-shrink-0" />{" "}
-              {/* Ensure icon doesn't shrink */}
-              <span>{tab.label}</span> {/* Label text */}
+              <span>{tab.label}</span>
             </button>
           ))}
         </div>
@@ -116,7 +104,6 @@ const ProductionPage: React.FC = () => {
 
       {/* Active Tab Content */}
       <main>
-        {/* Render the active tab's content component */}
         <ActiveTabComponent />
       </main>
     </div>
