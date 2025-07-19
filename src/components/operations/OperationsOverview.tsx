@@ -7,28 +7,17 @@ import {
 import Badge from "../ui/badge/Badge";
 import { motion, Variants } from "framer-motion";
 
-// const cardVariants = {
-//   hidden: { opacity: 0, y: 30 },
-//   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
-// };
-
-const cardVariants: Variants = { // Explicitly type cardVariants as Variants
-  hidden: {
-    opacity: 0,
-    y: 50, // Changed y from 100 to 50 for a smoother initial hidden state
-  },
+const cardVariants: Variants = { // It's good practice to explicitly type cardVariants as Variants
+  hidden: { opacity: 0, y: 30 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.8, // Adjust duration as needed
-      ease: "easeOut" as const, // <-- Fix: Add 'as const' here
-      // You can also use a cubic-bezier array if you need more custom easing:
-      // ease: [0.6, 0.01, -0.05, 0.95] as const,
+      duration: 0.6,
+      ease: "easeOut" as const, // <-- Add 'as const' here
     },
   },
 };
-
 
 interface Props {}
 
