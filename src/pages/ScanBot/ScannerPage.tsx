@@ -150,7 +150,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { toast, Toaster } from "sonner";
 import { BiBarcodeReader } from "react-icons/bi";
 import { BsCameraFill } from "react-icons/bs";
-import { FaBarcode, FaCamera, FaCheckCircle, FaKeyboard, FaTimesCircle } from 'react-icons/fa'; // Removed FaSpinner as no processing
+import { FaBarcode, FaCamera, FaCheckCircle, FaExclamationCircle, FaKeyboard, FaTimesCircle } from 'react-icons/fa'; // Removed FaSpinner as no processing
 import BarcodeScannerComponent from "../../components/settings/BarcodeScanner";
 import Card from "../../components/common/Card";
 import Button from "../../components/ui/button/SalesBtn";
@@ -160,14 +160,17 @@ import SubInput from "../../components/form/input/SubInput";
 
 const ScannerPage: React.FC = () => {
   const [scannedCode, setScannedCode] = useState<string | null>(null);
-  const [isCameraActive, setIsCameraActive] = useState<boolean>(false); // Controls camera scanner
+  const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
   const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>([]);
   const [currentCameraId, setCurrentCameraId] = useState<string | undefined>();
   const [isSmallScreen, setIsSmallScreen] = useState(false);
-  const [manualBarcodeInput, setManualBarcodeInput] = useState<string>(''); // State for manual input
+  const [manualBarcodeInput, setManualBarcodeInput] = useState<string>('');
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [warningMessage, setWarningMessage] = useState('');
   const manualInputRef = useRef<HTMLInputElement>(null);
+
+  // New state for camera permission status
+  const [cameraPermissionStatus, setCameraPermissionStatus] = useState<'prompt' | 'granted' | 'denied' | 'unavailable'>('prompt');
 
   // Unified function to process any scanned barcode (from camera or manual input)
   const processBarcode = useCallback((code: string) => {
@@ -177,27 +180,25 @@ const ScannerPage: React.FC = () => {
       return;
     }
 
-    // If you need to prevent immediate re-scanning of the *same* barcode, you can add:
     if (scannedCode === code) {
         setWarningMessage(`Barcode "${code}" has already been scanned.`);
         setShowWarningModal(true);
         return;
     }
 
-    setScannedCode(code); // Directly set the scanned code for display
-    setManualBarcodeInput(''); // Clear manual input field after processing
+    setScannedCode(code);
+    setManualBarcodeInput('');
     
     toast.success(`Barcode captured: ${code}`, { duration: 2000 });
 
-    // Refocus manual input after processing, useful for handheld scanners
     if (manualInputRef.current) {
       manualInputRef.current.focus();
     }
-  }, [scannedCode]); // Dependency on scannedCode to check for duplicates
+  }, [scannedCode]);
 
   // Handler for camera scans
   const handleCameraScan = useCallback((code: string) => {
-    setIsCameraActive(false); // Stop camera after a scan
+    setIsCameraActive(false);
     processBarcode(code);
   }, [processBarcode]);
 
@@ -209,9 +210,9 @@ const ScannerPage: React.FC = () => {
   // Handler for manual input key down (detects Enter for handheld scanners/manual submission)
   const handleManualInputKeyDown = useCallback(async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && manualBarcodeInput.trim() !== '') {
-      e.preventDefault(); // Prevent form submission
-      setIsCameraActive(false); // Ensure camera is off if using manual input
-      processBarcode(manualBarcodeInput.trim()); // Directly process the barcode
+      e.preventDefault();
+      setIsCameraActive(false);
+      processBarcode(manualBarcodeInput.trim());
     }
   }, [manualBarcodeInput, processBarcode]);
 
@@ -224,12 +225,33 @@ const ScannerPage: React.FC = () => {
     setCurrentCameraId(availableCameras[nextIndex].deviceId);
   }, [availableCameras, currentCameraId]);
 
+  // --- Camera Permission and Device Enumeration Effect ---
   useEffect(() => {
-    const getCameras = async () => {
+    const checkAndGetCameras = async () => {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices || !navigator.mediaDevices.getUserMedia) {
+        setCameraPermissionStatus('unavailable');
+        toast.error("MediaDevices API not supported in this browser.", { duration: 5000 });
+        return;
+      }
+
       try {
+        // 1. Request camera permission
+        // This will trigger the browser's permission prompt if not already granted.
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        // If successful, permission is granted. Stop the stream immediately as we only needed permission.
+        stream.getTracks().forEach(track => track.stop());
+        setCameraPermissionStatus('granted');
+
+        // 2. Enumerate devices after permission is granted
         const devices = await navigator.mediaDevices.enumerateDevices();
         const videoDevices = devices.filter((device) => device.kind === 'videoinput');
         setAvailableCameras(videoDevices);
+
+        if (videoDevices.length === 0) {
+          setCameraPermissionStatus('unavailable');
+          toast.info("No video input devices found.", { duration: 5000 });
+          return;
+        }
 
         let defaultCameraId: string | undefined;
         if (isSmallScreen) {
@@ -241,14 +263,25 @@ const ScannerPage: React.FC = () => {
           defaultCameraId = videoDevices[0]?.deviceId;
         }
         setCurrentCameraId(defaultCameraId);
-      } catch (error) {
-        console.error("Error enumerating video devices:", error);
-        toast.error("Failed to access camera devices. Please check permissions.", { duration: 5000 });
+
+      } catch (error: any) {
+        console.error("Error accessing camera or enumerating devices:", error);
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+          setCameraPermissionStatus('denied');
+          setWarningMessage("Camera access denied. Please allow camera permissions in your browser settings to use the camera scanner.");
+          setShowWarningModal(true);
+        } else if (error.name === 'NotFoundError') {
+          setCameraPermissionStatus('unavailable');
+          toast.error("No camera found on this device.", { duration: 5000 });
+        } else {
+          setCameraPermissionStatus('unavailable');
+          toast.error(`Camera error: ${error.message || 'Unknown error'}`, { duration: 5000 });
+        }
       }
     };
 
-    getCameras();
-  }, [isSmallScreen]);
+    checkAndGetCameras();
+  }, [isSmallScreen]); // Rerun if screen size changes (might affect default camera choice)
 
   // Effect to handle screen resize for camera preference
   useEffect(() => {
@@ -266,10 +299,12 @@ const ScannerPage: React.FC = () => {
     setManualBarcodeInput('');
     setIsCameraActive(false); // Camera starts off on reset now
     if (manualInputRef.current) {
-      manualInputRef.current.focus(); // Focus manual input for handheld scanner users
+      manualInputRef.current.focus();
     }
     toast.info("Scanner reset. Ready for new scan.", { duration: 1500 });
   }, []);
+
+  const isCameraReady = cameraPermissionStatus === 'granted' && currentCameraId !== undefined;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-cyan-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center py-12 px-6 sm:px-12 text-gray-800 dark:text-gray-200">
@@ -281,11 +316,10 @@ const ScannerPage: React.FC = () => {
               Barcode Capture
             </h1>
           </div>
-          {/* Reset Button */}
           <Button
             onClick={resetScanner}
             variant="secondary"
-            className="bg-blue-700 hover:bg-blue-900 text-blue-700 dark:text-white dark:bg-blue-500 dark:hover:bg-blue-700 px-4 py-2 rounded-md transition-colors duration-200 text-sm"
+            className="bg-blue-700 hover:bg-blue-900 text-white dark:bg-blue-500 dark:hover:bg-blue-700 px-4 py-2 rounded-md transition-colors duration-200 text-sm"
           >
             Reset
           </Button>
@@ -297,9 +331,8 @@ const ScannerPage: React.FC = () => {
             <h3 className="text-xl font-semibold mb-4 flex items-center">
               <FaCamera className="mr-2 text-purple-500" /> Camera Scan
             </h3>
-            {/* Conditional rendering of the camera display area */}
             <AnimatePresence mode="wait">
-              {isCameraActive && currentCameraId ? (
+              {isCameraActive && isCameraReady ? ( // Only render if camera is active AND ready (permission granted, ID available)
                 <motion.div
                   key="camera-active"
                   initial={{ opacity: 0, height: 0 }}
@@ -311,10 +344,9 @@ const ScannerPage: React.FC = () => {
                   <BarcodeScannerComponent
                     key={currentCameraId}
                     onScan={handleCameraScan}
-                    onError={(err) => toast.error(`Camera Error: ${err instanceof Error ? err.message : String(err)}`, { duration: 5000 })}
+                    onError={(err) => toast.error(`Scanner Error: ${err instanceof Error ? err.message : String(err)}`, { duration: 5000 })}
                     preferredCameraId={currentCameraId}
                   />
-                  {/* Overlays for active scanning */}
                   <>
                     <div className="absolute inset-0 bg-black opacity-10 rounded-md" />
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 border-2 border-dashed border-blue-300 rounded-md" />
@@ -323,25 +355,52 @@ const ScannerPage: React.FC = () => {
                     </p>
                   </>
                 </motion.div>
-              ) : (
-                // Optional: Placeholder when camera is not active and no camera is selected
-                // This block is now removed as per user request.
-                // The space will simply collapse.
+              ) : cameraPermissionStatus === 'denied' ? (
                 <motion.div
-                  key="camera-inactive-placeholder"
-                  initial={{ opacity: 0, height: 'auto' }}
-                  animate={{ opacity: 0, height: 0 }} // Collapse the height
-                  exit={{ opacity: 0, height: 0 }}
+                  key="permission-denied"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="hidden" // Ensure it's hidden from layout
-                />
+                  className="text-center text-red-600 dark:text-red-400 py-6"
+                >
+                  <FaExclamationCircle className="text-5xl mx-auto mb-3" />
+                  <p className="font-semibold">Camera Access Denied</p>
+                  <p className="text-sm mt-1">Please grant camera permissions in your browser settings to use this feature.</p>
+                </motion.div>
+              ) : cameraPermissionStatus === 'unavailable' ? (
+                <motion.div
+                  key="camera-unavailable"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-center text-gray-500 dark:text-gray-400 py-6"
+                >
+                  <FaExclamationCircle className="text-5xl mx-auto mb-3" />
+                  <p className="font-semibold">Camera Unavailable</p>
+                  <p className="text-sm mt-1">No camera found or MediaDevices API not supported.</p>
+                </motion.div>
+              ) : ( // cameraPermissionStatus === 'prompt'
+                <motion.div
+                  key="camera-prompt"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-center text-gray-600 dark:text-gray-300 py-6"
+                >
+                  <FaCamera className="text-5xl mx-auto mb-3" />
+                  <p className="font-semibold">Awaiting Camera Permission</p>
+                  <p className="text-sm mt-1">Click "Start Camera" to prompt for access.</p>
+                </motion.div>
               )}
             </AnimatePresence>
 
             <div className="flex justify-center mt-4 space-x-2">
               <Button
                 onClick={() => setIsCameraActive(true)}
-                disabled={isCameraActive || !currentCameraId}
+                disabled={isCameraActive || !isCameraReady} // Disable if already active or not ready
                 variant="secondary"
                 className="w-1/2"
               >
@@ -356,7 +415,7 @@ const ScannerPage: React.FC = () => {
                 <FaTimesCircle className="mr-2" /> Stop Camera
               </Button>
             </div>
-            {availableCameras.length > 1 && (
+            {availableCameras.length > 1 && isCameraReady && ( // Only show switch camera if multiple cameras and ready
               <div className="mt-2 text-center">
                 <Button
                   onClick={switchCamera}
@@ -428,4 +487,3 @@ const ScannerPage: React.FC = () => {
 };
 
 export default ScannerPage;
-
